@@ -20,7 +20,9 @@ export const loader = async ({request} : LoaderFunctionArgs) => {
     console.error("server rejects issued jwt");
     redirect("/");
   }
+
   const userInfo = await response.json();
+  console.log(userInfo);
   return redirect("/", {
     headers: {
       "Set-Cookie": await updateSession(session, {
