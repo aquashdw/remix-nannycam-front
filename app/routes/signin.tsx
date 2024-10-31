@@ -1,5 +1,14 @@
-import {FetcherWithComponents, json, useFetcher} from "@remix-run/react";
-import {ActionFunctionArgs} from "@remix-run/node";
+import { FetcherWithComponents, json, useFetcher, useLoaderData } from "@remix-run/react";
+import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import { bool } from "prop-types";
+
+export const loader = async ({
+  request
+}: LoaderFunctionArgs) => {
+  const url = new URL(request.url)
+  const success = url.searchParams.get("signup");
+  return json({ signupStatus: success })
+}
 
 export const action = async ({
   request,
@@ -16,6 +25,9 @@ export const action = async ({
 
 export default function SignIn() {
   const fetcher : FetcherWithComponents<{ status: number }> = useFetcher();
+  const { signupStatus  } = useLoaderData<typeof loader>();
+  const signupSuccess = signupStatus === "true";
+
   const { status } = fetcher.data ?? { status: null};
   const pending = fetcher.state === "submitting";
   const done = !pending && status !== null && status === 204;
@@ -23,7 +35,15 @@ export default function SignIn() {
   return (
     <main className="min-h-screen flex justify-center items-center">
       <div className="rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white">
-        <h1 className="text-4xl mb-4">Sign In with Email</h1>
+        <div className="flex mb-4 justify-between items-center">
+          <h1 className="text-4xl">Sign In with Email</h1>
+          {signupStatus ?
+            <div
+              className={"rounded-md py-1 px-2 border-1 " + (signupSuccess ? "bg-green-400 border-green-500" : "bg-red-400 border-red-500")}
+            >
+              Sign Up {signupSuccess ? "Success" : "Failed"}
+            </div> : null}
+        </div>
         <fetcher.Form method="post">
           <div className="mb-4">
             <label htmlFor="email-input" className="block mb-2 text-xl">Email: </label>
@@ -43,9 +63,9 @@ export default function SignIn() {
             >
               Submit
             </button>
-            {failed ? <div className="rounded-md bg-red-400 py-2 px-3 border-2 border-red-500">Failed</div> : null}
-            {pending ? <div className="rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500">Trying to login...</div> : null}
-            {done ? <div className="rounded-md bg-green-400 py-2 px-3 border-2 border-green-500">Check Email</div> : null}
+            {failed ? <div className="rounded-md py-2 px-3 border-2 bg-red-400 border-red-500">Failed</div> : null}
+            {pending ? <div className="rounded-md py-2 px-3 border-2 bg-cyan-400 border-cyan-500">Trying to login...</div> : null}
+            {done ? <div className="rounded-md py-2 px-3 border-2 bg-green-400 border-green-500">Check Email</div> : null}
           </div>
         </fetcher.Form>
       </div>

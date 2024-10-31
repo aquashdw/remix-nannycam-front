@@ -22,7 +22,6 @@ export const loader = async ({request} : LoaderFunctionArgs) => {
   }
 
   const userInfo = await response.json();
-  console.log(userInfo);
   return redirect("/", {
     headers: {
       "Set-Cookie": await updateSession(session, {

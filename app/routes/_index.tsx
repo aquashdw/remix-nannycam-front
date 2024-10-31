@@ -14,7 +14,6 @@ export const loader: LoaderFunction = async ({
 
 export default function Index() {
   const { username } = useLoaderData<typeof loader>();
-  console.log("username:", username);
   return (
     <main className="min-h-screen flex justify-center items-center">
       <div className="rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white text-center">
