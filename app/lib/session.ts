@@ -1,5 +1,5 @@
-import {createCookieSessionStorage, Session} from "@remix-run/node";
-import {sessionCookie} from "~/cookies.server";
+import { createCookieSessionStorage, Session } from "@remix-run/node";
+import { sessionCookie } from "~/cookies.server";
 import * as crypto from "node:crypto";
 import * as Iron from 'iron-webcrypto'
 import * as process from "node:process";
@@ -21,23 +21,20 @@ const unseal = async (cookieValue: string) : Promise<string | null> =>
     // @ts-expect-error cookie should be in unsealed data but isn't
     (await Iron.unseal(crypto, cookieValue, SECRET, Iron.defaults)).cookie;
 
-const dissectCookie = (cookie: string) => {
+const getSealedId = (cookie: string) => {
   const splitStr = cookie.split("sessionid=");
-  const preCookie = splitStr[0];
   const semiIdx = splitStr[1].indexOf(";");
-  const value = semiIdx !== -1 ? splitStr[1].slice(0, splitStr[1].indexOf(";")) : splitStr[1];
-  const postCookie = semiIdx !== -1 ? splitStr[1].slice(splitStr[1].indexOf(";")) : "";
-  return { preCookie, value, postCookie };
+  return semiIdx !== -1 ? splitStr[1].slice(0, splitStr[1].indexOf(";")) : splitStr[1];
 }
 
 const getSession = async (request: Request) => {
   const cookie = request.headers.get("Cookie");
-  if (!cookie) return cookieSessionStorage.getSession(cookie);
+  if (!cookie || cookie.indexOf("sessionid=") === -1) return cookieSessionStorage.getSession(cookie);
 
-  const { preCookie, value, postCookie } = dissectCookie(cookie);
+  const value = getSealedId(cookie);
   const unsealed = await unseal(value);
   if (!unsealed) throw Error("cannot decrypt cookie");
-  const composite = `${preCookie}sessionid=${unsealed}${postCookie}`;
+  const composite = `sessionid=${unsealed}`;
   return await cookieSessionStorage.getSession(composite);
 }
 
