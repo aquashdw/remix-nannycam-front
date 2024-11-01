@@ -1,6 +1,5 @@
 import { FetcherWithComponents, json, useFetcher, useLoaderData } from "@remix-run/react";
 import { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { bool } from "prop-types";
 
 export const loader = async ({
   request
@@ -33,10 +32,10 @@ export default function SignIn() {
   const done = !pending && status !== null && status === 204;
   const failed = !pending && status !== null && status !== 204;
   return (
-    <main className="min-h-screen flex justify-center items-center">
-      <div className="rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white">
+    <main>
+      <div className="main-content">
         <div className="flex mb-4 justify-between items-center">
-          <h1 className="text-4xl">Sign In with Email</h1>
+          <h1>Sign In with Email</h1>
           {signupStatus ?
             <div
               className={"rounded-md py-1 px-2 border-1 " + (signupSuccess ? "bg-green-400 border-green-500" : "bg-red-400 border-red-500")}
@@ -52,7 +51,7 @@ export default function SignIn() {
               type="email"
               name="email"
               required
-              className="block w-full text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black"
+              className="block w-full"
             />
           </div>
 

@@ -15,10 +15,10 @@ export const loader: LoaderFunction = async ({
 export default function Index() {
   const { username } = useLoaderData<typeof loader>();
   return (
-    <main className="min-h-screen flex justify-center items-center">
-      <div className="rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white text-center">
-        <h1 className="text-4xl mb-3">CRStudio NannyCam</h1>
-        {username ? <h3 className="mb-4 text-lg">Hello, {username}!!! </h3> : null}
+    <main>
+      <div className="main-content-centered">
+        <h1>CRStudio NannyCam</h1>
+        {username ? <h3 className="mb-4">Hello, {username}!!! </h3> : null}
         {username ? <SelectionLinks /> : null}
         {username ? null : <p className="mb-4">Use your unused smartphones & tablets as NannyCams!</p>}
         {username ? null : <AnonLinks/>}
@@ -58,13 +58,13 @@ const SelectionLinks = () => {
         </Link>
         <Link
           className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
-          to="/camera"
+          to="/camera/new"
         >
           Camera
         </Link>
       </div>
       <Form action="signout" method="post">
-        <button type="submit">Sign Out</button>
+        <button type="submit" className="text-lg">Sign Out</button>
       </Form>
     </div>
   );
