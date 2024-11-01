@@ -9,14 +9,18 @@ export const action = async ({
   if (!session.get("signedIn")) return redirect("/signin")
   const formData = await request.formData();
   const name = formData.get("name");
+  const description = formData.get("description");
   if (!name) return redirect("?invalid=name");
-  const response = await fetch(`http://localhost:8080/cameras/${name}`, {
+  const response = await fetch(`http://localhost:8080/cameras`, {
     method: "post",
     headers: {
       "Authorization": `Bearer ${session.get("jwt")}`,
-    }
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, description }),
   });
   if (response.ok) return redirect(`/camera/${name}`)
+  return redirect(`?invalid=${response.status}`);
 }
 
 export const loader = async ({
@@ -39,11 +43,28 @@ export default function AddCamera() {
   console.log(cameras);
   return (
     <main>
-      <div className="main-content-centered">
-        <h1 className="mb-4">Add a Camera</h1>
+      <div className="main-content">
+        <h1 className="mb-4 text-center">Add a Camera</h1>
         <form className="mb-2 text-xl" method="post">
-          <label htmlFor="name-input" className="me-2">Name: </label>
-          <input type="text" id="name-input" name="name" className="me-2" />
+          <div className="mb-2">
+            <label htmlFor="name-input" className="block mb-2 text-xl">Name: </label>
+            <input
+              type="text"
+              id="name-input"
+              name="name"
+              required
+              className="block w-full"
+            />
+          </div>
+          <div className="mb-5">
+            <label htmlFor="desc-input" className="block mb-2 text-xl">Description: </label>
+            <input
+              id="desc-input"
+              type="text"
+              name="description"
+              className="block w-full"
+            />
+          </div>
           <input type="submit" className="button-pos" value="Add"/>
         </form>
       </div>

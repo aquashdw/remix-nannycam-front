@@ -1,16 +1,30 @@
-import { LoaderFunctionArgs } from "@remix-run/node";
+import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { json, useLoaderData } from "@remix-run/react";
+import { getSession } from "~/lib/session";
 
 export const loader = async ({
-  params
+  params, request
 }: LoaderFunctionArgs) => {
+  const session = await getSession(request);
+  if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
   if (!name) throw new Response("Bad Request", { status: 400 });
-  return json({ name });
+  const response = await fetch(`http://localhost:8080/cameras/${name}`, {
+    headers: {
+      "Authorization": `Bearer ${session.get("jwt")}`,
+    },
+  });
+  if (response.ok) {
+    const { token } = await response.json();
+    return json({ name, token });
+  }
+  console.log(response.status);
+  return redirect("/camera/new?invalid=error")
 };
 
 export default function Camera() {
-  const { name } = useLoaderData<typeof loader>()
+  const { name, token } = useLoaderData<typeof loader>();
+  console.log(token);
   // useEffect(() => {
   //   const socket = new WebSocket("ws://localhost:8080/ws/connect?name=camera");
   //   socket.addEventListener("open", (event) => {
