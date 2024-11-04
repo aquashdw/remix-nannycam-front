@@ -1,6 +1,7 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Form, json, useBeforeUnload, useLoaderData, useSubmit } from "@remix-run/react";
 import { getSession } from "~/lib/session";
+import { useEffect, useRef } from "react";
 
 export const action = async({
   params, request
@@ -40,7 +41,6 @@ export const loader = async ({
 
 export default function Camera() {
   const { name, token } = useLoaderData<typeof loader>();
-  console.log(token);
 
   const submit = useSubmit();
   useBeforeUnload(() => {
@@ -48,26 +48,90 @@ export default function Camera() {
     submit(new FormData(),{method: "post"})
   });
 
-  // useEffect(() => {
-  //   const socket = new WebSocket("ws://localhost:8080/ws/connect?name=camera");
-  //   socket.addEventListener("open", (event) => {
-  //     console.log(event.type);
-  //     socket.send("Hello Server!");
-  //   })
-  //   socket.addEventListener("message", (event) => {
-  //     console.log(event.data);
-  //   })
-  //   socket.addEventListener("error", (event) => {
-  //     console.error(event);
-  //   });
-  //   socket.addEventListener("close", (event) => {
-  //     console.log(event);
-  //   });
-  // }, []);
+  const videoRef = useRef<HTMLVideoElement>();
+  let cameraStream: MediaStream;
+
+  const getCameras = async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === "videoinput");
+      const currentCamera = cameraStream.getVideoTracks()[0];
+      cameras.forEach(camera => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.innerText = camera.label;
+        if (currentCamera.label === camera.label) {
+          option.selected = true;
+        }
+        console.log(option);
+      })
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const getMedia = async (videoId: string | null = null) => {
+    try {
+      const initConstraints = {
+        audio: {
+          muted: true,
+        },
+        video: {
+          facingMode: "user",
+        },
+      };
+      const cameraConstraints = {
+        audio: {
+          muted: true,
+        },
+        video: {
+          deviceId: {
+            exact: videoId
+          }
+        },
+      }
+      cameraStream = await navigator.mediaDevices.getUserMedia(
+        // @ts-expect-error TODO
+        videoId ? cameraConstraints : initConstraints
+      );
+      if (videoRef.current) videoRef.current.srcObject = cameraStream
+      if (!videoId) await getCameras();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const init = async () => {
+    getMedia();
+  }
+
+  useEffect(() => {
+    init().then(() => {
+      const socket = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
+      socket.addEventListener("open", (event) => {
+        console.log(event.type);
+        socket.send("Hello Server!");
+      })
+      socket.addEventListener("message", (event) => {
+        console.log(event.data);
+      })
+      socket.addEventListener("error", (event) => {
+        console.error(event);
+      });
+      socket.addEventListener("close", (event) => {
+        console.log(event);
+      });
+    });
+  }, []);
   return (
     <main>
       <div className="main-content-centered">
         <h1 className="mb-4">Camera {name}</h1>
+        {/*
+        // @ts-expect-error ref types mismatch */}
+        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full">
+        <track kind="captions"/>
+        </ video>
         <Form method="post">
           <input type="submit" value="Remove Camera"/>
         </Form>
