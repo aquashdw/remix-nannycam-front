@@ -35,7 +35,6 @@ export const loader = async ({
     const { token } = await response.json();
     return json({ name, token });
   }
-  console.log(response.status);
   return redirect("/camera/new?invalid=error")
 };
 
@@ -44,7 +43,6 @@ export default function Camera() {
 
   const submit = useSubmit();
   useBeforeUnload(() => {
-    console.log("useBeforeUnload");
     submit(new FormData(),{method: "post"})
   });
 
@@ -102,18 +100,15 @@ export default function Camera() {
   };
 
   const init = async () => {
-    getMedia();
+    await getMedia();
   }
 
   useEffect(() => {
     init().then(() => {
       const socket = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
-      socket.addEventListener("open", (event) => {
-        console.log(event.type);
-        socket.send("Hello Server!");
-      })
       socket.addEventListener("message", (event) => {
         console.log(event.data);
+        socket.send("camera ack");
       })
       socket.addEventListener("error", (event) => {
         console.error(event);
