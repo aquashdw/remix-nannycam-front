@@ -1,7 +1,8 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { json, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/lib/session";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
 
 
 export const loader = async ({
@@ -23,14 +24,28 @@ export const loader = async ({
   return redirect("/monitor")
 };
 
-export default function Camera() {
+export default function Monitor() {
   const { name, token } = useLoaderData<typeof loader>();
+
+  const videoRef = useRef<HTMLVideoElement>();
 
   useEffect(() => {
     const socket = new WebSocket(`ws://localhost:8080/ws/monitor?token=${token}`);
-    socket.addEventListener("message", (event) => {
-      console.log(event.data);
-      socket.send("monitor ack");
+    const peerConnection = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
+    socket.addEventListener("message", async (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type !== "ICE") console.debug(data);
+      if (data.type === "OFFER") {
+        console.debug("get offer");
+        const offer = JSON.parse(data.payload);
+        console.debug("videoRef current: ", videoRef.current);
+        // peerConnection = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
+        await sendAnswer(socket, offer, peerConnection);
+      }
+      else if (data.type === "ICE") {
+        const ice = JSON.parse(data.payload);
+        await peerConnection.addIceCandidate(ice);
+      }
     })
     socket.addEventListener("error", (event) => {
       console.error(event);
@@ -43,6 +58,11 @@ export default function Camera() {
     <main>
       <div className="main-content-centered">
         <h1 className="mb-4">Connect to Camera {name}</h1>
+        {/*
+        // @ts-expect-error ref types mismatch */}
+        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
+          <track kind="captions"/>
+        </ video>
       </div>
     </main>
   )

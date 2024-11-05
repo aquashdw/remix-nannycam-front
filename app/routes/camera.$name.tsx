@@ -2,6 +2,7 @@ import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/nod
 import { Form, json, useBeforeUnload, useLoaderData, useSubmit } from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
+import { createCameraPeer, sendOffer } from "~/lib/rtc";
 
 export const action = async({
   params, request
@@ -48,26 +49,6 @@ export default function Camera() {
 
   const videoRef = useRef<HTMLVideoElement>();
   let cameraStream: MediaStream;
-
-  const getCameras = async () => {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const cameras = devices.filter(device => device.kind === "videoinput");
-      const currentCamera = cameraStream.getVideoTracks()[0];
-      cameras.forEach(camera => {
-        const option = document.createElement("option");
-        option.value = camera.deviceId;
-        option.innerText = camera.label;
-        if (currentCamera.label === camera.label) {
-          option.selected = true;
-        }
-        console.log(option);
-      })
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const getMedia = async (videoId: string | null = null) => {
     try {
       const initConstraints = {
@@ -92,8 +73,8 @@ export default function Camera() {
         // @ts-expect-error TODO
         videoId ? cameraConstraints : initConstraints
       );
+      cameraStream.getAudioTracks().forEach(track => track.enabled = false);
       if (videoRef.current) videoRef.current.srcObject = cameraStream
-      if (!videoId) await getCameras();
     } catch (e) {
       console.error(e);
     }
@@ -104,11 +85,29 @@ export default function Camera() {
   }
 
   useEffect(() => {
-    init().then(() => {
+    let peerConnection: RTCPeerConnection;
+    init().then(async () => {
       const socket = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
       socket.addEventListener("message", (event) => {
-        console.log(event.data);
-        socket.send("camera ack");
+        const data = JSON.parse(event.data);
+        if (data.type !== "ICE") console.debug(data);
+        if (data.type === "CONNECT") {
+          console.debug("monitor connected");
+          peerConnection = createCameraPeer(socket);
+          cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
+          sendOffer(socket, peerConnection);
+        }
+        else if (data.type === "ANSWER") {
+          console.debug("get answer");
+          const answer = JSON.parse(data.payload);
+          console.debug(peerConnection.remoteDescription);
+          if(!peerConnection.remoteDescription)
+            peerConnection.setRemoteDescription(answer);
+        }
+        else if (data.type === "ICE") {
+          const ice = JSON.parse(data.payload);
+          peerConnection.addIceCandidate(ice);
+        }
       })
       socket.addEventListener("error", (event) => {
         console.error(event);
@@ -124,8 +123,8 @@ export default function Camera() {
         <h1 className="mb-4">Camera {name}</h1>
         {/*
         // @ts-expect-error ref types mismatch */}
-        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full">
-        <track kind="captions"/>
+        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
+          <track kind="captions"/>
         </ video>
         <Form method="post">
           <input type="submit" value="Remove Camera"/>

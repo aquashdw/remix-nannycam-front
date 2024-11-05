@@ -1,6 +1,6 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getSession } from "~/lib/session";
-import { json, useLoaderData } from "@remix-run/react";
+import { json, Link, useLoaderData } from "@remix-run/react";
 
 export const loader = async ({
                                request
@@ -13,31 +13,32 @@ export const loader = async ({
     }
   });
   const cameras = await response.json();
-  console.log(cameras);
   return json({ cameras });
 }
 
-export default function Monitor() {
+export default function MonitorSelect() {
   const { cameras } = useLoaderData<typeof loader>();
   return (
     <main>
       <div className="main-content">
         <h1 className="mb-4 text-center">Watch a Camera</h1>
-        <ul className="divide-y divide-gray-100">{
+        <ul className="divide-y divide-blue-400">{
           Object.keys(cameras).map((name, index) => {
             return (
-              <li key={index} className="flex justify-between gap-x-6 py-5">
-                <div className="flex min-w-0 gap-x-4">
-                  <div className="min-w-0 flex-auto">
-                    <p className="text-sm/6 font-semibold text-gray-900">{name}</p>
-                    <p className="mt-1 truncate text-xs/5 text-gray-500">{cameras[name].description}</p>
+              <li key={index}>
+                <Link to={name} className="bg-gray-100 flex justify-between gap-x-6 px-3 py-5">
+                  <div className="flex min-w-0 gap-x-4">
+                    <div className="min-w-0 flex-auto">
+                      <p className="text-sm/6 font-semibold text-gray-900">{name} <span
+                        className="mt-1 truncate text-xs/5 text-gray-500">{cameras[name].description}</span></p>
+                    </div>
                   </div>
-                </div>
-                {/*<div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">*/}
-                {/*  <p className="text-sm/6 text-gray-900">Co-Founder / CEO</p>*/}
-                {/*  <p className="mt-1 text-xs/5 text-gray-500">Last seen <time datetime="2023-01-23T13:23Z">3h ago</time></p>*/}
-                {/*</div>*/}
-              </li>)
+                  <div className="shrink-0 flex flex-col items-end">
+                    <p className="text-sm/6 text-gray-900">{cameras[name].status}</p>
+                  </div>
+                </Link>
+              </li>
+            )
           })
         }
         </ul>
