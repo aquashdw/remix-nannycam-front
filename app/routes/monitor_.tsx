@@ -26,7 +26,7 @@ export default function MonitorSelect() {
           Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>
-                <Link to={name} className="bg-gray-100 flex justify-between gap-x-6 px-3 py-5">
+                <Link to={encodeURIComponent(name)} className="bg-gray-100 flex justify-between gap-x-6 px-3 py-5">
                   <div className="flex min-w-0 gap-x-4">
                     <div className="min-w-0 flex-auto">
                       <p className="text-sm/6 font-semibold text-gray-900">{name} <span

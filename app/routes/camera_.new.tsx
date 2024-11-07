@@ -19,7 +19,7 @@ export const action = async ({
     },
     body: JSON.stringify({ name, description }),
   });
-  if (response.ok) return redirect(`/camera/${name}`)
+  if (response.ok) return redirect(`/camera/${encodeURIComponent(name.toString())}`)
   return redirect(`?invalid=${response.status}`);
 }
 
