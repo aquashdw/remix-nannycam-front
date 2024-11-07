@@ -35,10 +35,14 @@ input {
   @apply text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in;
 }
 
+main {
+  @apply bg-blue-500 text-white;
+}
+
 .main-content-centered {
-  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white text-center;
+  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 text-center;
 }
 
 .main-content {
-  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 bg-blue-500 text-white;
+  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6;
 }

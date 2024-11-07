@@ -22,7 +22,7 @@ export default function MonitorSelect() {
     <main>
       <div className="main-content">
         <h1 className="mb-4 text-center">Watch a Camera</h1>
-        <ul className="divide-y divide-blue-400">{
+        <ul className="divide-y divide-blue-400 overflow-y-auto">{
           Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>
