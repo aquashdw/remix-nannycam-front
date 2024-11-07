@@ -32,7 +32,11 @@ input {
 }
 
 .button-pos {
-  @apply text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in;
+  @apply text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in;
+}
+
+.button-neg {
+  @apply text-xl text-red-500 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-red-600 disabled:text-gray-400 disabled:bg-red-600 transition ease-in;
 }
 
 main {

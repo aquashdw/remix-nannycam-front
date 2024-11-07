@@ -21,8 +21,11 @@ export default function MonitorSelect() {
   return (
     <main>
       <div className="main-content">
-        <h1 className="mb-4 text-center">Watch a Camera</h1>
-        <ul className="divide-y divide-blue-400 overflow-y-auto">{
+        <div className="mb-4 flex justify-between items-baseline">
+          <h1 className="text-center">Watch a Camera</h1>
+          <Link to="/" className="button-neg">Back</Link>
+        </div>
+        <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto" style={{ maxHeight: "70vh" }}>{
           Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>

@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { json, useBeforeUnload, useLoaderData } from "@remix-run/react";
+import { json, Link, useBeforeUnload, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
 import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
@@ -61,7 +61,10 @@ export default function Monitor() {
   return (
     <main>
       <div className="main-content-centered">
-        <h1 className="mb-4">Connect to Camera {name}</h1>
+        <div className="flex justify-between items-baseline">
+          <h1 className="mb-4">Connect to Camera {name}</h1>
+          <Link to="/monitor" className="button-neg">Back</Link>
+        </div>
         {/*
         // @ts-expect-error ref types mismatch */}
         <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>

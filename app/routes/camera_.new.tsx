@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getSession } from "~/lib/session";
-import { json, useLoaderData } from "@remix-run/react";
+import { json, Link, useLoaderData } from "@remix-run/react";
 
 export const action = async ({
                                request,
@@ -65,7 +65,10 @@ export default function AddCamera() {
               className="block w-full"
             />
           </div>
-          <input type="submit" className="button-pos" value="Add"/>
+          <div className="flex justify-between">
+            <input type="submit" className="button-pos" value="Add"/>
+            <Link to="/" className="button-neg">Back</Link>
+          </div>
         </form>
       </div>
     </main>

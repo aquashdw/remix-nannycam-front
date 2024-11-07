@@ -31,13 +31,13 @@ const AnonLinks = () => {
   return (
     <div className="flex justify-evenly items-center">
       <Link
-        className="text-xl text-blue-600 w-1/3 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+        className="button-pos w-1/3"
         to="/signin"
       >
         Sign In
       </Link>
       <Link
-        className="text-xl text-blue-600 w-1/3 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+        className="button-pos w-1/3"
         to="/signup"
       >
         Sign Up
@@ -51,13 +51,13 @@ const SelectionLinks = () => {
     <div className="flex justify-between items-center">
       <div className="flex justify-start items-center w-1/2">
         <Link
-          className="text-xl text-blue-600 me-1 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+          className="button-pos me-2"
           to="/monitor"
         >
           Monitor
         </Link>
         <Link
-          className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+          className="button-pos"
           to="/camera/new"
         >
           Camera
