@@ -13,7 +13,8 @@ export const createCameraPeer = (socket: WebSocket) => {
     ],
   });
   peerConnection.addEventListener("icecandidate", (data) => {
-    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data)}));
+    console.debug("cam send ice", data);
+    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data.candidate)}));
   });
   return peerConnection;
 };
@@ -32,7 +33,8 @@ export const createMonitorPeer = (socket: WebSocket, videoElem: HTMLVideoElement
     ],
   });
   peerConnection.addEventListener("icecandidate", (data) => {
-    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data)}));
+    console.debug("mon send ice", data);
+    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data.candidate)}));
   });
   // peerConnection.addEventListener("track", (data) => {
   //   console.debug(data);
