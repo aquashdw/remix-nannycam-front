@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { json, useLoaderData } from "@remix-run/react";
+import { json, useBeforeUnload, useLoaderData } from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
 import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
@@ -28,10 +28,15 @@ export default function Monitor() {
   const { name, token } = useLoaderData<typeof loader>();
 
   const videoRef = useRef<HTMLVideoElement>();
+  const peerConnectionRef = useRef<RTCPeerConnection>()
+  useBeforeUnload(() => {
+    peerConnectionRef.current?.close();
+  });
 
   useEffect(() => {
     const socket = new WebSocket(`ws://localhost:8080/ws/monitor?token=${token}`);
-    const peerConnection = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
+    peerConnectionRef.current = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
+    const peerConnection = peerConnectionRef.current;
     socket.addEventListener("message", async (event) => {
       const data = JSON.parse(event.data);
       if (data.type !== "ICE") console.debug(data);
@@ -39,7 +44,6 @@ export default function Monitor() {
         console.debug("get offer");
         const offer = JSON.parse(data.payload);
         console.debug("videoRef current: ", videoRef.current);
-        // peerConnection = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
         await sendAnswer(socket, offer, peerConnection);
       }
       else if (data.type === "ICE") {

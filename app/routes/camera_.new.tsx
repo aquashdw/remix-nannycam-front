@@ -40,7 +40,7 @@ export const loader = async ({
 export default function AddCamera() {
   const { cameras } = useLoaderData<typeof loader>();
   // TODO display already using camera info
-  console.log(cameras);
+  console.debug(cameras);
   return (
     <main>
       <div className="main-content">

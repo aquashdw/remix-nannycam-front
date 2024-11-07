@@ -41,14 +41,23 @@ export const loader = async ({
 
 export default function Camera() {
   const { name, token } = useLoaderData<typeof loader>();
+  const peerConnectionRef = useRef<RTCPeerConnection>();
+  let cameraStream: MediaStream;
+
+  const onExit = () => {
+    peerConnectionRef.current?.close();
+    cameraStream?.getTracks().forEach(track => {
+      track.stop();
+    });
+  }
 
   const submit = useSubmit();
   useBeforeUnload(() => {
-    submit(new FormData(),{method: "post"})
+    onExit();
+    submit(new FormData(),{method: "post"});
   });
 
   const videoRef = useRef<HTMLVideoElement>();
-  let cameraStream: MediaStream;
   const getMedia = async (videoId: string | null = null) => {
     try {
       const initConstraints = {
@@ -85,15 +94,16 @@ export default function Camera() {
   }
 
   useEffect(() => {
-    let peerConnection: RTCPeerConnection;
     init().then(async () => {
+      let peerConnection: RTCPeerConnection;
       const socket = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
       socket.addEventListener("message", (event) => {
         const data = JSON.parse(event.data);
         if (data.type !== "ICE") console.debug(data);
         if (data.type === "CONNECT") {
           console.debug("monitor connected");
-          peerConnection = createCameraPeer(socket);
+          peerConnectionRef.current = createCameraPeer(socket);
+          peerConnection = peerConnectionRef.current;
           cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
           sendOffer(socket, peerConnection);
         }
@@ -126,7 +136,10 @@ export default function Camera() {
         <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
           <track kind="captions"/>
         </ video>
-        <Form method="post">
+        <Form method="post" onSubmit={(event) => {
+          onExit();
+          submit(event.currentTarget);
+        }}>
           <input type="submit" value="Remove Camera"/>
         </Form>
       </div>
