@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 import { createCameraPeer, sendOffer } from "~/lib/rtc";
 
 export const action = async({
-  params, request
-}: ActionFunctionArgs) => {
+                              params, request
+                            }: ActionFunctionArgs) => {
   const session = await getSession(request);
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
@@ -21,8 +21,8 @@ export const action = async({
 };
 
 export const loader = async ({
-  params, request
-}: LoaderFunctionArgs) => {
+                               params, request
+                             }: LoaderFunctionArgs) => {
   const session = await getSession(request);
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
@@ -58,6 +58,38 @@ export default function Camera() {
   });
 
   const videoRef = useRef<HTMLVideoElement>();
+  const selectRef = useRef<HTMLSelectElement>();
+
+  const getCameras = async () => {
+    if (!selectRef.current) return;
+    const cameraSelect = selectRef.current;
+    try {
+      cameraSelect.innerHTML = '';
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(device => device.kind === "videoinput");
+      const currentCamera = cameraStream.getVideoTracks()[0];
+      cameras.forEach(camera => {
+        const option = document.createElement("option");
+        option.value = camera.deviceId;
+        option.innerText = camera.label;
+        option.selected = currentCamera.label === camera.label;
+        cameraSelect.appendChild(option);
+      });
+      cameraSelect.addEventListener("input", async (e: Event) => {
+        await getMedia(e.target.value);
+        const peerConnection = peerConnectionRef.current;
+        if (peerConnection) {
+          const track = cameraStream.getVideoTracks()[0];
+          const sender = peerConnection.getSenders()
+              .find(sender => sender.track?.kind === "video");
+          await sender?.replaceTrack(track);
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const getMedia = async (videoId: string | null = null) => {
     try {
       const initConstraints = {
@@ -79,11 +111,12 @@ export default function Camera() {
         },
       }
       cameraStream = await navigator.mediaDevices.getUserMedia(
-        // @ts-expect-error TODO
-        videoId ? cameraConstraints : initConstraints
+          // @ts-expect-error TODO
+          videoId ? cameraConstraints : initConstraints
       );
       cameraStream.getAudioTracks().forEach(track => track.enabled = false);
       if (videoRef.current) videoRef.current.srcObject = cameraStream
+      if (!videoId) await getCameras();
     } catch (e) {
       console.error(e);
     }
@@ -128,21 +161,29 @@ export default function Camera() {
     });
   }, []);
   return (
-    <main>
-      <div className="main-content-centered">
-        <h1 className="mb-4">Camera {name}</h1>
-        {/*
+      <main>
+        <div className="main-content-centered">
+          <h1 className="mb-4">Camera {name}</h1>
+          {/*
         // @ts-expect-error ref types mismatch */}
-        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
-          <track kind="captions"/>
-        </ video>
-        <Form method="post" onSubmit={(event) => {
-          onExit();
-          submit(event.currentTarget);
-        }}>
-          <input type="submit" value="Remove Camera"/>
-        </Form>
-      </div>
-    </main>
+          <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
+            <track kind="captions"/>
+          </ video>
+          <div className="flex justify-center">
+            {/*
+        // @ts-expect-error ref types mismatch */}
+            <select ref={selectRef} className="text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black" id="camera-select">
+
+            </select>
+            <div className="mx-1"></div>
+            <Form method="post" onSubmit={(event) => {
+              onExit();
+              submit(event.currentTarget);
+            }}>
+              <input type="submit" value="Remove Camera"/>
+            </Form>
+          </div>
+        </div>
+      </main>
   )
 }
