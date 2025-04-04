@@ -1,5 +1,5 @@
 import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { Form, json, useBeforeUnload, useLoaderData, useSubmit } from "@remix-run/react";
+import {Form, json, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
 import { createCameraPeer, sendOffer } from "~/lib/rtc";
@@ -41,7 +41,13 @@ export const loader = async ({
 
 export default function Camera() {
   const { name, token } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+
+  const videoRef = useRef<HTMLVideoElement>();
+  const selectRef = useRef<HTMLSelectElement>();
+  const socketRef = useRef<WebSocket>();
   const peerConnectionRef = useRef<RTCPeerConnection>();
+
   let cameraStream: MediaStream;
 
   const onExit = () => {
@@ -54,11 +60,8 @@ export default function Camera() {
   const submit = useSubmit();
   useBeforeUnload(() => {
     onExit();
-    submit(new FormData(),{method: "post"});
+    // submit(new FormData(), {method: "post"});
   });
-
-  const videoRef = useRef<HTMLVideoElement>();
-  const selectRef = useRef<HTMLSelectElement>();
 
   const getCameras = async () => {
     if (!selectRef.current) return;
@@ -76,6 +79,7 @@ export default function Camera() {
         cameraSelect.appendChild(option);
       });
       cameraSelect.addEventListener("input", async (e: Event) => {
+        // @ts-expect-error value not found on target when it should
         await getMedia(e.target.value);
         const peerConnection = peerConnectionRef.current;
         if (peerConnection) {
@@ -127,39 +131,55 @@ export default function Camera() {
   }
 
   useEffect(() => {
-    init().then(async () => {
-      let peerConnection: RTCPeerConnection;
-      const socket = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
-      socket.addEventListener("message", (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type !== "ICE") console.debug(data);
-        if (data.type === "CONNECT") {
-          console.debug("monitor connected");
-          peerConnectionRef.current = createCameraPeer(socket);
-          peerConnection = peerConnectionRef.current;
-          cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
-          sendOffer(socket, peerConnection);
-        }
-        else if (data.type === "ANSWER") {
-          console.debug("get answer");
-          const answer = JSON.parse(data.payload);
-          console.debug(peerConnection.remoteDescription);
-          if(!peerConnection.remoteDescription)
-            peerConnection.setRemoteDescription(answer);
-        }
-        else if (data.type === "ICE") {
-          const ice = JSON.parse(data.payload);
-          peerConnection.addIceCandidate(ice);
-        }
-      })
-      socket.addEventListener("error", (event) => {
-        console.error(event);
-      });
-      socket.addEventListener("close", (event) => {
-        console.log(event);
-      });
+    let peerConnection: RTCPeerConnection;
+    if (!socketRef.current) socketRef.current = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
+    const socket = socketRef.current;
+    socket.addEventListener("message", (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type !== "ICE") console.debug(data);
+      if (data.type === "CONNECT") {
+        console.debug("monitor connected");
+        peerConnectionRef.current = createCameraPeer(socket);
+        peerConnection = peerConnectionRef.current;
+        peerConnection.addEventListener('iceconnectionstatechange', () => {
+          const state = peerConnection.iceConnectionState;
+          console.debug('ICE state changed:', state);
+          if (state === "connected" || state === "completed") {
+            // TODO disconnect ws
+          }
+          if (state === "disconnected" || state === "closed" || state === "failed") {
+            // TODO reconnect ws
+          }
+        })
+        cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
+        sendOffer(socket, peerConnection);
+      }
+      else if (data.type === "ANSWER") {
+        console.debug("get answer");
+        const answer = JSON.parse(data.payload);
+        console.debug(peerConnection.remoteDescription);
+        if(!peerConnection.remoteDescription)
+          peerConnection.setRemoteDescription(answer);
+      }
+      else if (data.type === "ICE") {
+        console.debug("ICE!!!");
+        const ice = JSON.parse(data.payload);
+        peerConnection.addIceCandidate(ice);
+      }
     });
+    socket.addEventListener("error", (event) => {
+      console.error(event);
+    });
+    socket.addEventListener("close", (event) => {
+      console.log(event);
+      if (event.code === 1008) {
+        alert(event.reason);
+        navigate("/camera/new");
+      }
+    });
+    init().then(() => console.debug("camera added"));
   }, []);
+
   return (
       <main>
         <div className="main-content-centered">

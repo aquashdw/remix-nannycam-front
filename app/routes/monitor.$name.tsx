@@ -1,5 +1,5 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { json, Link, useBeforeUnload, useLoaderData } from "@remix-run/react";
+import {json, Link, useBeforeUnload, useLoaderData, useNavigate} from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
 import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
@@ -27,16 +27,36 @@ export const loader = async ({
 export default function Monitor() {
   const { name, token } = useLoaderData<typeof loader>();
 
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>();
-  const peerConnectionRef = useRef<RTCPeerConnection>()
+  const socketRef = useRef<WebSocket>();
+  const peerConnectionRef = useRef<RTCPeerConnection>();
+
   useBeforeUnload(() => {
     peerConnectionRef.current?.close();
+    socketRef.current?.close();
   });
 
   useEffect(() => {
-    const socket = new WebSocket(`ws://localhost:8080/ws/monitor?token=${token}`);
+    if (!socketRef.current) socketRef.current = new WebSocket(`ws://localhost:8080/ws/monitor?token=${token}`);
+    const socket = socketRef.current;
     peerConnectionRef.current = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
     const peerConnection = peerConnectionRef.current;
+    peerConnection.addEventListener('iceconnectionstatechange', () => {
+      const state = peerConnection.iceConnectionState;
+      console.debug('ICE state changed:', state);
+      if (state === "connected" || state === "completed") {
+        // TODO disconnect ws
+      }
+      if (state === "disconnected" || state === "failed") {
+        alert("connection lost");
+        navigate("/monitor");
+      }
+      if (state === "closed") {
+        alert("camera was removed");
+        navigate("/monitor");
+      }
+    })
     socket.addEventListener("message", async (event) => {
       const data = JSON.parse(event.data);
       if (data.type !== "ICE") console.debug(data);
@@ -56,6 +76,10 @@ export default function Monitor() {
     });
     socket.addEventListener("close", (event) => {
       console.log(event);
+      if (event.code === 1008) {
+        alert(event.reason);
+        navigate("/monitor");
+      }
     });
   }, []);
   return (
@@ -63,7 +87,7 @@ export default function Monitor() {
       <div className="main-content-centered">
         <div className="flex justify-between items-baseline">
           <h1 className="mb-4">Connect to Camera {name}</h1>
-          <Link to="/monitor" className="button-neg">Back</Link>
+          <Link to="/monitor" reloadDocument className="button-neg">Back</Link>
         </div>
         {/*
         // @ts-expect-error ref types mismatch */}
