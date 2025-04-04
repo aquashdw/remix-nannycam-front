@@ -130,9 +130,9 @@ export default function Camera() {
     await getMedia();
   }
 
-  useEffect(() => {
+  const connectSignal = () => {
     let peerConnection: RTCPeerConnection;
-    if (!socketRef.current) socketRef.current = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
+    socketRef.current = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
     const socket = socketRef.current;
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
@@ -145,10 +145,10 @@ export default function Camera() {
           const state = peerConnection.iceConnectionState;
           console.debug('ICE state changed:', state);
           if (state === "connected" || state === "completed") {
-            // TODO disconnect ws
+            socket.close();
           }
           if (state === "disconnected" || state === "closed" || state === "failed") {
-            // TODO reconnect ws
+            connectSignal();
           }
         })
         cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
@@ -177,6 +177,10 @@ export default function Camera() {
         navigate("/camera/new");
       }
     });
+  }
+
+  useEffect(() => {
+    connectSignal();
     init().then(() => console.debug("camera added"));
   }, []);
 

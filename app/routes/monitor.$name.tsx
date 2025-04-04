@@ -1,9 +1,24 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import {json, Link, useBeforeUnload, useLoaderData, useNavigate} from "@remix-run/react";
+import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
+import {json, Link, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
 import { getSession } from "~/lib/session";
 import { useEffect, useRef } from "react";
 import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
 
+export const action = async({
+                              params, request
+                            }: ActionFunctionArgs) => {
+  const session = await getSession(request);
+  if (!session.get("signedIn")) return redirect("/signin");
+  const name = params.name;
+  if (!name) throw new Response("Bad Request", { status: 400 });
+  await fetch(`http://localhost:8080/cameras/${name}/monitor`, {
+    method: "delete",
+    headers: {
+      "Authorization": `Bearer ${session.get("jwt")}`,
+    },
+  });
+  return redirect("/monitor");
+};
 
 export const loader = async ({
   params, request
@@ -27,6 +42,7 @@ export const loader = async ({
 export default function Monitor() {
   const { name, token } = useLoaderData<typeof loader>();
 
+  const submit = useSubmit();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>();
   const socketRef = useRef<WebSocket>();
@@ -35,6 +51,7 @@ export default function Monitor() {
   useBeforeUnload(() => {
     peerConnectionRef.current?.close();
     socketRef.current?.close();
+    submit(new FormData(), {method: "post"});
   });
 
   useEffect(() => {
@@ -46,7 +63,7 @@ export default function Monitor() {
       const state = peerConnection.iceConnectionState;
       console.debug('ICE state changed:', state);
       if (state === "connected" || state === "completed") {
-        // TODO disconnect ws
+        socket.close();
       }
       if (state === "disconnected" || state === "failed") {
         alert("connection lost");
