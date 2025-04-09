@@ -1,6 +1,7 @@
 import { LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { getSession } from "~/lib/session";
-import { json, Link, useLoaderData } from "@remix-run/react";
+import {json, Link, useFetcher, useLoaderData, useRevalidator} from "@remix-run/react";
+import {useEffect} from "react";
 
 export const loader = async ({
                                request
@@ -18,6 +19,15 @@ export const loader = async ({
 
 export default function MonitorSelect() {
   const { cameras } = useLoaderData<typeof loader>();
+  const { revalidate } = useRevalidator();
+  useEffect(() => {
+    const interval = setInterval(() => {
+      revalidate();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [revalidate]);
+
   return (
     <main>
       <div className="main-content">
