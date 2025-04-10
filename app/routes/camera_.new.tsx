@@ -11,7 +11,7 @@ export const action = async ({
   const formData = await request.formData();
   const name = formData.get("name");
   const description = formData.get("description");
-  if (!name) return redirect("?invalid=name");
+  if (!name) return redirect("?error=name");
   const response = await fetch(`http://localhost:8080/cameras`, {
     method: "post",
     headers: {
@@ -21,7 +21,7 @@ export const action = async ({
     body: JSON.stringify({ name, description }),
   });
   if (response.ok) return redirect(`/camera/${encodeURIComponent(name.toString())}`)
-  return redirect(`?invalid=${response.status}`);
+  return redirect(`?error=${response.status}`);
 }
 
 export const loader = async ({
@@ -69,7 +69,7 @@ export default function AddCamera() {
             </div>
             <div className="ms-3 font-normal text-sm">Camera was removed because page was refreshed.</div>
           </div> : null}
-          {searchParams.has("invalid") ? <div id="toast-danger"
+          {searchParams.has("error") ? <div id="toast-danger"
                                               className="flex items-center w-full p-4 mb-4 text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800"
                                               role="alert">
             <div
@@ -81,7 +81,7 @@ export default function AddCamera() {
               </svg>
               <span className="sr-only">Error icon</span>
             </div>
-            <div className="ms-3 text-sm font-normal">{searchParams.get("invalid") === "409" ? "Camera with the name exists" : "Error"}</div>
+            <div className="ms-3 text-sm font-normal">{searchParams.get("error") === "409" ? "Camera with the name exists" : "Error"}</div>
           </div> : null}
           <div className="mb-2">
             <label htmlFor="name-input" className="block mb-2 text-xl">Name: </label>

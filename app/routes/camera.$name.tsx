@@ -36,7 +36,7 @@ export const loader = async ({
     const { token } = await response.json();
     return json({ name, token });
   }
-  return redirect("/camera/new?invalid=error")
+  return redirect("/camera/new?error=error")
 };
 
 export default function Camera() {
@@ -177,8 +177,7 @@ export default function Camera() {
     socket.addEventListener("close", (event) => {
       console.log(event);
       if (event.code === 1008) {
-        alert(event.reason);
-        navigate("/camera/new");
+        navigate(`/camera/new?error=${event.reason}`);
       }
     });
   }
