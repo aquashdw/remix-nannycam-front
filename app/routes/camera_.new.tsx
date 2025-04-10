@@ -1,6 +1,7 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getSession } from "~/lib/session";
-import { json, Link, useLoaderData } from "@remix-run/react";
+import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
+import {getSession} from "~/lib/session";
+import {json, Link, useLoaderData, useRevalidator} from "@remix-run/react";
+import {useEffect} from "react";
 
 export const action = async ({
                                request,
@@ -39,8 +40,15 @@ export const loader = async ({
 
 export default function AddCamera() {
   const { cameras } = useLoaderData<typeof loader>();
-  // TODO display already using camera info
-  console.debug(cameras);
+  const { revalidate } = useRevalidator();
+  useEffect(() => {
+    const interval = setInterval(() => {
+      revalidate();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [revalidate]);
+
   return (
     <main>
       <div className="main-content">
@@ -70,6 +78,28 @@ export default function AddCamera() {
             <Link to="/" className="button-neg">Back</Link>
           </div>
         </form>
+        <hr className="my-3" />
+        {Object.keys(cameras).length !== 0 ? <>
+          <h3 className="mb-3">Cameras Online</h3>
+          <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto rounded" style={{ maxHeight: "30vh" }}>{
+            Object.keys(cameras).map((name, index) => {
+              return (<li key={index}>
+                <div className="bg-gray-100 flex justify-between gap-x-6 px-3 py-5">
+                  <div className="flex min-w-0 gap-x-4">
+                    <div className="min-w-0 flex-auto">
+                      <p className="text-sm/6 font-semibold text-gray-900">{name} <span
+                          className="mt-1 truncate text-xs/5 text-gray-500">{cameras[name].description}</span></p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex flex-col items-end">
+                    <p className="text-sm/6 text-gray-900">{cameras[name].status}</p>
+                  </div>
+                </div>
+              </li>);
+            })
+          }
+          </ul>
+        </> : <h3 className="mb-3">No cameras yet</h3>}
       </div>
     </main>
   )

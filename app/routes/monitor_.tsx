@@ -1,6 +1,6 @@
-import { LoaderFunctionArgs, redirect } from "@remix-run/node";
-import { getSession } from "~/lib/session";
-import {json, Link, useFetcher, useLoaderData, useRevalidator} from "@remix-run/react";
+import {LoaderFunctionArgs, redirect} from "@remix-run/node";
+import {getSession} from "~/lib/session";
+import {json, Link, useLoaderData, useRevalidator} from "@remix-run/react";
 import {useEffect} from "react";
 
 export const loader = async ({
@@ -35,7 +35,7 @@ export default function MonitorSelect() {
           <h1 className="text-center">Watch a Camera</h1>
           <Link to="/" className="button-neg">Back</Link>
         </div>
-        <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto" style={{ maxHeight: "70vh" }}>{
+        <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto rounded" style={{ maxHeight: "70vh" }}>{
           Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>
