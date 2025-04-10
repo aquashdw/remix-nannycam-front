@@ -1,7 +1,8 @@
 import {LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {getSession} from "~/lib/session";
-import {json, Link, useLoaderData, useRevalidator} from "@remix-run/react";
+import {json, Link, useLoaderData, useRevalidator, useSearchParams} from "@remix-run/react";
 import {useEffect} from "react";
+import {ErrorToast, WarnToast} from "~/components/toast";
 
 export const loader = async ({
                                request
@@ -20,6 +21,7 @@ export const loader = async ({
 export default function MonitorSelect() {
   const { cameras } = useLoaderData<typeof loader>();
   const { revalidate } = useRevalidator();
+  const [searchParams] = useSearchParams();
   useEffect(() => {
     const interval = setInterval(() => {
       revalidate();
@@ -35,6 +37,7 @@ export default function MonitorSelect() {
           <h1 className="text-center">Watch a Camera</h1>
           <Link to="/" className="button-neg">Back</Link>
         </div>
+        {searchParams.has("error") ? <WarnToast>{searchParams.get("error") ?? "Error"}</WarnToast> : null}
         <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto rounded" style={{ maxHeight: "70vh" }}>{
           Object.keys(cameras).map((name, index) => {
             return (

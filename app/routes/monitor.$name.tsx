@@ -1,8 +1,8 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {json, Link, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
-import { getSession } from "~/lib/session";
-import { useEffect, useRef } from "react";
-import { createMonitorPeer, sendAnswer } from "~/lib/rtc";
+import {getSession} from "~/lib/session";
+import {useEffect, useRef} from "react";
+import {createMonitorPeer, sendAnswer} from "~/lib/rtc";
 
 export const action = async({
                               params, request
@@ -66,12 +66,7 @@ export default function Monitor() {
         socket.close();
       }
       if (state === "disconnected" || state === "failed") {
-        alert("connection lost");
-        navigate("/monitor");
-      }
-      if (state === "closed") {
-        alert("camera was removed");
-        navigate("/monitor");
+        navigate("/monitor?error=Disconnected from camera");
       }
     })
     socket.addEventListener("message", async (event) => {
