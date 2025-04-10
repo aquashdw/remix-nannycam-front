@@ -40,6 +40,8 @@ export const loader = async ({
 };
 
 export default function Camera() {
+
+
   const { name, token } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
@@ -180,8 +182,16 @@ export default function Camera() {
   }
 
   useEffect(() => {
-    connectSignal();
-    init().then(() => console.debug("camera added"));
+    const [navEntry] = performance.getEntriesByType("navigation");
+    // @ts-expect-error client-side
+    if (navEntry?.type === "reload") {
+      console.debug("page reloaded: invalidate camera");
+      navigate("/camera/new?reloaded");
+    }
+    else {
+      connectSignal();
+      init().then(() => console.debug("camera added"));
+    }
   }, []);
 
   return (
