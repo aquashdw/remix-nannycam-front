@@ -49,6 +49,7 @@ export default function Camera() {
   const selectRef = useRef<HTMLSelectElement>();
   const socketRef = useRef<WebSocket>();
   const peerConnectionRef = useRef<RTCPeerConnection>();
+  const submit = useSubmit();
 
   let cameraStream: MediaStream;
 
@@ -59,11 +60,12 @@ export default function Camera() {
     });
   }
 
-  const submit = useSubmit();
-  useBeforeUnload(() => {
+  const exit = () => {
     onExit();
-    // submit(new FormData(), {method: "post"});
-  });
+    submit(new FormData(), {method: "post"});
+  }
+
+  useBeforeUnload(exit);
 
   const getCameras = async () => {
     if (!selectRef.current) return;
@@ -210,10 +212,7 @@ export default function Camera() {
 
             </select>
             <div className="mx-1"></div>
-            <Form method="post" onSubmit={(event) => {
-              onExit();
-              submit(event.currentTarget);
-            }}>
+            <Form method="post" onSubmit={exit}>
               <input type="submit" value="Remove Camera"/>
             </Form>
           </div>
