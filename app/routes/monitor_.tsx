@@ -39,7 +39,10 @@ export default function MonitorSelect() {
           Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>
-                <Link to={encodeURIComponent(name)} className="bg-gray-100 flex justify-between gap-x-6 px-3 py-5">
+                <Link to={encodeURIComponent(name)} className="bg-gray-200 hover:bg-white flex justify-between gap-x-6 px-3 py-5" style={{
+                  pointerEvents: cameras[name].status !== "READY" ? "none" : "initial",
+                  backgroundColor: cameras[name].status !== "READY" ? "oklch(70.7% 0.022 261.325)" : undefined,
+                }}>
                   <div className="flex min-w-0 gap-x-4">
                     <div className="min-w-0 flex-auto">
                       <p className="text-sm/6 font-semibold text-gray-900">{name} <span
