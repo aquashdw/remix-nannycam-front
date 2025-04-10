@@ -39,7 +39,7 @@ export default function MonitorSelect() {
         </div>
         {searchParams.has("error") ? <WarnToast>{searchParams.get("error") ?? "Error"}</WarnToast> : null}
         <ul className="mb-4 divide-y divide-blue-400 overflow-y-auto rounded" style={{ maxHeight: "70vh" }}>{
-          Object.keys(cameras).map((name, index) => {
+          Object.keys(cameras).length !== 0 ? Object.keys(cameras).map((name, index) => {
             return (
               <li key={index}>
                 <Link to={encodeURIComponent(name)} className="bg-gray-200 hover:bg-white flex justify-between gap-x-6 px-3 py-5" style={{
@@ -58,7 +58,7 @@ export default function MonitorSelect() {
                 </Link>
               </li>
             )
-          })
+          }) : <h3 className="mb-3">No cameras yet</h3>
         }
         </ul>
       </div>
