@@ -1,16 +1,17 @@
-import { ActionFunctionArgs, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {Form, json, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
-import { getSession } from "~/lib/session";
-import { useEffect, useRef } from "react";
-import { createCameraPeer, sendOffer } from "~/lib/rtc";
+import {getSession} from "~/lib/session";
+import {useEffect, useRef} from "react";
+import {createCameraPeer, sendOffer} from "~/lib/rtc";
+import ScreenCover from "~/components/cover";
 
-export const action = async({
-                              params, request
-                            }: ActionFunctionArgs) => {
+export const action = async ({
+                               params, request
+                             }: ActionFunctionArgs) => {
   const session = await getSession(request);
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
-  if (!name) throw new Response("Bad Request", { status: 400 });
+  if (!name) throw new Response("Bad Request", {status: 400});
   await fetch(`http://localhost:8080/cameras/${name}`, {
     method: "delete",
     headers: {
@@ -26,23 +27,21 @@ export const loader = async ({
   const session = await getSession(request);
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
-  if (!name) throw new Response("Bad Request", { status: 400 });
+  if (!name) throw new Response("Bad Request", {status: 400});
   const response = await fetch(`http://localhost:8080/cameras/${name}`, {
     headers: {
       "Authorization": `Bearer ${session.get("jwt")}`,
     },
   });
   if (response.ok) {
-    const { token } = await response.json();
-    return json({ name, token });
+    const {token} = await response.json();
+    return json({name, token});
   }
   return redirect("/camera/new?error=error")
 };
 
 export default function Camera() {
-
-
-  const { name, token } = useLoaderData<typeof loader>();
+  const {name, token} = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   const videoRef = useRef<HTMLVideoElement>();
@@ -157,15 +156,13 @@ export default function Camera() {
         })
         cameraStream.getTracks().forEach(track => peerConnection.addTrack(track, cameraStream));
         sendOffer(socket, peerConnection);
-      }
-      else if (data.type === "ANSWER") {
+      } else if (data.type === "ANSWER") {
         console.debug("get answer");
         const answer = JSON.parse(data.payload);
         console.debug(peerConnection.remoteDescription);
-        if(!peerConnection.remoteDescription)
+        if (!peerConnection.remoteDescription)
           peerConnection.setRemoteDescription(answer);
-      }
-      else if (data.type === "ICE") {
+      } else if (data.type === "ICE") {
         console.debug("ICE!!!");
         const ice = JSON.parse(data.payload);
         peerConnection.addIceCandidate(ice);
@@ -188,34 +185,34 @@ export default function Camera() {
     if (navEntry?.type === "reload") {
       console.debug("page reloaded: invalidate camera");
       navigate("/camera/new?reloaded");
-    }
-    else {
+    } else {
       connectSignal();
       init().then(() => console.debug("camera added"));
     }
   }, []);
 
-  return (
-      <main>
-        <div className="main-content-centered">
-          <h1 className="mb-4">Camera {name}</h1>
+  return (<ScreenCover>
+    <main>
+      <div className="main-content-centered">
+        <h1 className="mb-4">Camera {name}</h1>
+        {/*
+        // @ts-expect-error ref types mismatch */}
+        <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
+          <track kind="captions"/>
+        </ video>
+        <div className="flex justify-center">
           {/*
         // @ts-expect-error ref types mismatch */}
-          <video ref={videoRef} autoPlay={true} playsInline={true} className="min-w-full min-h-full mb-2" muted={true}>
-            <track kind="captions"/>
-          </ video>
-          <div className="flex justify-center">
-            {/*
-        // @ts-expect-error ref types mismatch */}
-            <select ref={selectRef} className="text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black" id="camera-select">
+          <select ref={selectRef} className="text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black"
+                  id="camera-select">
 
-            </select>
-            <div className="mx-1"></div>
-            <Form method="post" onSubmit={exit}>
-              <input type="submit" value="Remove Camera"/>
-            </Form>
-          </div>
+          </select>
+          <div className="mx-1"></div>
+          <Form method="post" onSubmit={exit}>
+            <input type="submit" value="Remove Camera"/>
+          </Form>
         </div>
-      </main>
-  )
+      </div>
+    </main>
+  </ScreenCover>);
 }
