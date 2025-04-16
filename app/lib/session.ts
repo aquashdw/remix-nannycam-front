@@ -1,7 +1,7 @@
-import { createCookieSessionStorage, Session } from "@remix-run/node";
-import { sessionCookie } from "~/cookies.server";
+import {createCookieSessionStorage, Session} from "@remix-run/node";
+import {sessionCookie} from "~/cookies.server";
 import * as crypto from "node:crypto";
-import * as Iron from 'iron-webcrypto'
+import * as Iron from "iron-webcrypto"
 import * as process from "node:process";
 
 export const cookieSessionStorage = createCookieSessionStorage({
@@ -16,8 +16,8 @@ type SessionData = {
 }
 
 const SECRET = process.env.SECRET ?? "!t%9v2V-rTfAKt7:~vKmuiA~MxB4uNjK";
-const seal = async (cookie: string) => await Iron.seal(crypto, { cookie }, SECRET, Iron.defaults);
-const unseal = async (cookieValue: string) : Promise<string | null> =>
+const seal = async (cookie: string) => await Iron.seal(crypto, {cookie}, SECRET, Iron.defaults);
+const unseal = async (cookieValue: string): Promise<string | null> =>
     // @ts-expect-error cookie should be in unsealed data but isn't
     (await Iron.unseal(crypto, cookieValue, SECRET, Iron.defaults)).cookie;
 

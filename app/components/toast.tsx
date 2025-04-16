@@ -5,7 +5,7 @@ interface BaseToastProps {
   children?: ReactNode;
 }
 
-export function BaseToast({ duration = 3000, children }: BaseToastProps) {
+export function BaseToast({duration = 3000, children}: BaseToastProps) {
   const [visible, setVisible] = useState(true);
   const [fading, setFading] = useState(false);
 
@@ -28,7 +28,7 @@ export function BaseToast({ duration = 3000, children }: BaseToastProps) {
         fixed bottom-4 right-4 z-50
         text-gray-500 bg-white rounded-lg shadow-sm dark:text-gray-400 dark:bg-gray-800
         transition-opacity duration-300
-        ${fading ? 'opacity-0' : 'opacity-100'}
+        ${fading ? "opacity-0" : "opacity-100"}
       `}
       >
         {children}
@@ -37,8 +37,7 @@ export function BaseToast({ duration = 3000, children }: BaseToastProps) {
 }
 
 
-
-export function WarnToast({ children, duration = 3000 } : { children : string, duration?: number }) {
+export function WarnToast({children, duration = 3000}: { children: string, duration?: number }) {
   return (<BaseToast duration={duration}>
     <div
         className="inline-flex items-center justify-center shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200">
@@ -53,7 +52,7 @@ export function WarnToast({ children, duration = 3000 } : { children : string, d
   </BaseToast>);
 }
 
-export function ErrorToast({ children, duration = 3000 } : { children : string, duration?: number }) {
+export function ErrorToast({children, duration = 3000}: { children: string, duration?: number }) {
   return (<BaseToast duration={duration}>
     <div
         className="inline-flex items-center justify-center shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">

@@ -14,7 +14,7 @@ export const createCameraPeer = (socket: WebSocket) => {
   });
   peerConnection.addEventListener("icecandidate", (data) => {
     console.debug("cam send ice", data);
-    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data.candidate)}));
+    socket.send(JSON.stringify({type: "ICE", payload: JSON.stringify(data.candidate)}));
   });
   return peerConnection;
 };
@@ -34,7 +34,7 @@ export const createMonitorPeer = (socket: WebSocket, videoElem: HTMLVideoElement
   });
   peerConnection.addEventListener("icecandidate", (data) => {
     console.debug("mon send ice", data);
-    socket.send(JSON.stringify({ type: "ICE", payload: JSON.stringify(data.candidate)}));
+    socket.send(JSON.stringify({type: "ICE", payload: JSON.stringify(data.candidate)}));
   });
   // peerConnection.addEventListener("track", (data) => {
   //   console.debug(data);
@@ -62,7 +62,7 @@ export const sendOffer = async (socket: WebSocket, peerConnection: RTCPeerConnec
   console.debug("create offer");
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
-  socket.send(JSON.stringify({ type: "OFFER", payload: JSON.stringify(offer)}));
+  socket.send(JSON.stringify({type: "OFFER", payload: JSON.stringify(offer)}));
 };
 
 // monitor sends answer
@@ -71,5 +71,5 @@ export const sendAnswer = async (socket: WebSocket, offer: RTCSessionDescription
   await peerConnection.setRemoteDescription(offer);
   const answer = await peerConnection.createAnswer();
   await peerConnection.setLocalDescription(answer);
-  socket.send(JSON.stringify({ type: "ANSWER", payload: JSON.stringify(answer)}));
+  socket.send(JSON.stringify({type: "ANSWER", payload: JSON.stringify(answer)}));
 }
