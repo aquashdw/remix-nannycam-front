@@ -4,6 +4,10 @@ import {getSession} from "~/lib/session";
 import {useEffect, useRef} from "react";
 import {createCameraPeer, sendOffer} from "~/lib/rtc";
 import ScreenCover from "~/components/cover";
+import process from "node:process";
+
+const HOST = process.env.HOST ?? "http://localhost:8080";
+const AUTHORITY = HOST.split("//")[1];
 
 export const action = async ({
                                params, request
@@ -12,7 +16,7 @@ export const action = async ({
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
   if (!name) throw new Response("Bad Request", {status: 400});
-  await fetch(`http://localhost:8080/cameras/${name}`, {
+  await fetch(`${HOST}/cameras/${name}`, {
     method: "delete",
     headers: {
       "Authorization": `Bearer ${session.get("jwt")}`,
@@ -28,20 +32,20 @@ export const loader = async ({
   if (!session.get("signedIn")) return redirect("/signin");
   const name = params.name;
   if (!name) throw new Response("Bad Request", {status: 400});
-  const response = await fetch(`http://localhost:8080/cameras/${name}`, {
+  const response = await fetch(`${HOST}/cameras/${name}`, {
     headers: {
       "Authorization": `Bearer ${session.get("jwt")}`,
     },
   });
   if (response.ok) {
     const {token} = await response.json();
-    return json({name, token});
+    return json({name, token, authority: AUTHORITY});
   }
   return redirect("/camera/new?error=error")
 };
 
 export default function Camera() {
-  const {name, token} = useLoaderData<typeof loader>();
+  const {name, token, authority} = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   const videoRef = useRef<HTMLVideoElement>();
@@ -70,7 +74,7 @@ export default function Camera() {
     if (!selectRef.current) return;
     const cameraSelect = selectRef.current;
     try {
-      cameraSelect.innerHTML = '';
+      cameraSelect.innerHTML = "";
       const devices = await navigator.mediaDevices.enumerateDevices();
       const cameras = devices.filter(device => device.kind === "videoinput");
       const currentCamera = cameraStream.getVideoTracks()[0];
@@ -135,7 +139,7 @@ export default function Camera() {
 
   const connectSignal = () => {
     let peerConnection: RTCPeerConnection;
-    socketRef.current = new WebSocket(`ws://localhost:8080/ws/camera?token=${token}`);
+    socketRef.current = new WebSocket(`ws://${authority}/ws/camera?token=${token}`);
     const socket = socketRef.current;
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
@@ -144,9 +148,9 @@ export default function Camera() {
         console.debug("monitor connected");
         peerConnectionRef.current = createCameraPeer(socket);
         peerConnection = peerConnectionRef.current;
-        peerConnection.addEventListener('iceconnectionstatechange', () => {
+        peerConnection.addEventListener("iceconnectionstatechange", () => {
           const state = peerConnection.iceConnectionState;
-          console.debug('ICE state changed:', state);
+          console.debug("ICE state changed:", state);
           if (state === "connected" || state === "completed") {
             socket.close();
           }
@@ -172,7 +176,6 @@ export default function Camera() {
       console.error(event);
     });
     socket.addEventListener("close", (event) => {
-      console.log(event);
       if (event.code === 1008) {
         navigate(`/camera/new?error=${event.reason}`);
       }

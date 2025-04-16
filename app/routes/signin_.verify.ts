@@ -1,16 +1,19 @@
 import {LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {getSession, updateSession} from "~/lib/session";
+import process from "node:process";
 
-export const loader = async ({request} : LoaderFunctionArgs) => {
+const HOST = process.env.HOST ?? "http://localhost:8080";
+
+export const loader = async ({request}: LoaderFunctionArgs) => {
   const session = await getSession(request);
   if (session.get("signedIn") === true) {
     return redirect("/");
   }
   const url = new URL(request.url);
   const token = url.searchParams.get("token") ?? "";
-  const jwtResponse = await fetch(`http://localhost:8080/auth/signin?token=${token}`);
+  const jwtResponse = await fetch(`${HOST}/auth/signin?token=${token}`);
   const jwt = await jwtResponse.text();
-  const response = await fetch(`http://localhost:8080/auth/user-info`, {
+  const response = await fetch(`${HOST}/auth/user-info`, {
     headers: {
       "Authorization": `Bearer ${jwt}`
     }
