@@ -1,4 +1,4 @@
-import {createCookieSessionStorage, Session} from "@remix-run/node";
+import {createCookieSessionStorage} from "@remix-run/node";
 import {sessionCookie} from "~/cookies.server";
 import * as crypto from "node:crypto";
 import * as Iron from "iron-webcrypto"
@@ -16,46 +16,47 @@ type SessionData = {
 }
 
 const SECRET = process.env.SECRET ?? "!t%9v2V-rTfAKt7:~vKmuiA~MxB4uNjK";
-const seal = async (cookie: string) => await Iron.seal(crypto, {cookie}, SECRET, Iron.defaults);
-const unseal = async (cookieValue: string): Promise<string | null> =>
-    // @ts-expect-error cookie should be in unsealed data but isn't
-    (await Iron.unseal(crypto, cookieValue, SECRET, Iron.defaults)).cookie;
 
-const getSealedId = (cookie: string) => {
-  const splitStr = cookie.split("sessionid=");
-  const semiIdx = splitStr[1].indexOf(";");
-  return semiIdx !== -1 ? splitStr[1].slice(0, splitStr[1].indexOf(";")) : splitStr[1];
-}
+const sealData = async (data: object) => await Iron.seal(crypto, data, SECRET, Iron.defaults);
+const unsealData = async (sealed: string | undefined): Promise<SessionData | null> =>
+    // @ts-expect-error cookie should be in unsealed data but isn't
+    sealed ? (await Iron.unseal(crypto, sealed, SECRET, Iron.defaults)) : {};
 
 const getSession = async (request: Request) => {
   const cookie = request.headers.get("Cookie");
-  if (!cookie || cookie.indexOf("sessionid=") === -1) return cookieSessionStorage.getSession(cookie);
-
-  const value = getSealedId(cookie);
-  const unsealed = await unseal(value);
-  if (!unsealed) throw Error("cannot decrypt cookie");
-  const composite = `sessionid=${unsealed}`;
-  return await cookieSessionStorage.getSession(composite);
+  return await cookieSessionStorage.getSession(cookie);
 }
 
-
-const refineCommited = async (commited: string) => {
-  const splitStr = commited.split("sessionid=");
-  const preCookie = splitStr[0];
-  const value = splitStr[1].slice(0, splitStr[1].indexOf(";"));
-  const postCookie = splitStr[1].slice(splitStr[1].indexOf(";"));
-  return `${preCookie}sessionid=${await seal(value)}${postCookie}`;
+export type SessionHandler = {
+  getJwt: () => string | undefined,
+  getUsername: () => string | undefined,
+  getSignedIn: () => boolean | undefined,
+  getUpdatedAt: () => number | undefined,
+  update: (data: SessionData) => Promise<void>,
+  getSetCookie: () => Promise<string>,
+  destroySession: () => Promise<string>,
 }
 
-const updateSession = async (session: Session, data: SessionData) => {
-  if (data.jwt) session.set("jwt", data.jwt);
-  if (data.username) session.set("username", data.username);
-  if (data.signedIn) session.set("signedIn", data.signedIn);
-  if (data.updatedAt) session.set("updatedAt", data.updatedAt);
-  const commited = await cookieSessionStorage.commitSession(session)
-  return await refineCommited(commited);
+export async function getSessionHandler(request: Request): Promise<SessionHandler> {
+  const session = await getSession(request);
+  const data = await unsealData(session.get("data")) ?? {};
+  const getJwt = () => data.jwt;
+  const getUsername = () => data.username;
+  const getSignedIn = () => data.signedIn;
+  const getUpdatedAt = () => data.updatedAt;
+
+  const update = async ({jwt, username, signedIn}: SessionData) => {
+    data.jwt = jwt ?? data.jwt;
+    data.username = username ?? data.username;
+    data.signedIn = signedIn ?? data.signedIn;
+    data.updatedAt = Date.now();
+    session.set("data", await sealData(data));
+  }
+
+  const getSetCookie = async () => await cookieSessionStorage.commitSession(session);
+  const destroySession = () => cookieSessionStorage.destroySession(session);
+
+  return {
+    getJwt, getUsername, getSignedIn, getUpdatedAt, update, getSetCookie, destroySession
+  }
 }
-
-const destroySession = cookieSessionStorage.destroySession
-
-export {getSession, updateSession, destroySession};

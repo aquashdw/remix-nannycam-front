@@ -1,17 +1,17 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {getSession} from "~/lib/session";
 import {json, Link, useLoaderData, useRevalidator, useSearchParams} from "@remix-run/react";
 import {useEffect} from "react";
 import {ErrorToast, WarnToast} from "~/components/toast";
 import process from "node:process";
+import {getSessionHandler} from "~/lib/session";
 
 const HOST = process.env.HOST ?? "http://localhost:8080";
 
 export const action = async ({
                                request,
                              }: ActionFunctionArgs) => {
-  const session = await getSession(request);
-  if (!session.get("signedIn")) return redirect("/signin")
+  const {getSignedIn, getJwt} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const formData = await request.formData();
   const name = formData.get("name");
   const description = formData.get("description");
@@ -19,7 +19,7 @@ export const action = async ({
   const response = await fetch(`${HOST}/cameras`, {
     method: "post",
     headers: {
-      "Authorization": `Bearer ${session.get("jwt")}`,
+      "Authorization": `Bearer ${getJwt()}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({name, description}),
@@ -31,11 +31,11 @@ export const action = async ({
 export const loader = async ({
                                request
                              }: LoaderFunctionArgs) => {
-  const session = await getSession(request);
-  if (!session.get("signedIn")) return redirect("/signin")
+  const {getSignedIn, getJwt} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const response = await fetch(`${HOST}/cameras`, {
     headers: {
-      "Authorization": `Bearer ${session.get("jwt")}`,
+      "Authorization": `Bearer ${getJwt()}`,
     }
   });
   const cameras = await response.json();

@@ -1,6 +1,6 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {Form, json, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
-import {getSession} from "~/lib/session";
+import {getSessionHandler} from "~/lib/session";
 import {useEffect, useRef} from "react";
 import {createCameraPeer, sendOffer} from "~/lib/rtc";
 import ScreenCover from "~/components/cover";
@@ -12,14 +12,14 @@ const AUTHORITY = HOST.split("//")[1];
 export const action = async ({
                                params, request
                              }: ActionFunctionArgs) => {
-  const session = await getSession(request);
-  if (!session.get("signedIn")) return redirect("/signin");
+  const {getSignedIn, getJwt} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const name = params.name;
   if (!name) throw new Response("Bad Request", {status: 400});
   await fetch(`${HOST}/cameras/${name}`, {
     method: "delete",
     headers: {
-      "Authorization": `Bearer ${session.get("jwt")}`,
+      "Authorization": `Bearer ${getJwt()}`,
     },
   });
   return redirect("/");
@@ -28,13 +28,13 @@ export const action = async ({
 export const loader = async ({
                                params, request
                              }: LoaderFunctionArgs) => {
-  const session = await getSession(request);
-  if (!session.get("signedIn")) return redirect("/signin");
+  const {getSignedIn, getJwt} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const name = params.name;
   if (!name) throw new Response("Bad Request", {status: 400});
   const response = await fetch(`${HOST}/cameras/${name}`, {
     headers: {
-      "Authorization": `Bearer ${session.get("jwt")}`,
+      "Authorization": `Bearer ${getJwt()}`,
     },
   });
   if (response.ok) {

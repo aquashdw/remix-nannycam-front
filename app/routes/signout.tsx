@@ -1,5 +1,5 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/node";
-import { destroySession, getSession } from "~/lib/session";
+import {ActionFunctionArgs, redirect} from "@remix-run/node";
+import {getSessionHandler} from "~/lib/session";
 
 export const loader = async () => {
   return redirect("/");
@@ -8,10 +8,11 @@ export const loader = async () => {
 export const action = async ({
                                request,
                              }: ActionFunctionArgs) => {
-  const session = await getSession(request);
+  const {getSignedIn, destroySession} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const headers = new Headers();
-  if (session) {
-    headers.set("Set-Cookie", await destroySession(session));
+  if (destroySession) {
+    headers.set("Set-Cookie", await destroySession());
   }
   return redirect("/", {headers});
 };
