@@ -1,8 +1,15 @@
 import {FetcherWithComponents, json, useFetcher} from "@remix-run/react";
-import {ActionFunctionArgs} from "@remix-run/node";
+import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
+import {getSessionHandler} from "~/lib/session";
 
 const HOST = process.env.HOST ?? "http://localhost:8080";
+
+export const loader = async ({request}: LoaderFunctionArgs) => {
+  const {getSignedIn} = await getSessionHandler(request);
+  if (getSignedIn()) return redirect("/");
+  return {};
+}
 
 export const action = async ({
                                request,

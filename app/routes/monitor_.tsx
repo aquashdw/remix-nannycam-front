@@ -1,20 +1,20 @@
 import {LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {getSession} from "~/lib/session";
 import {json, Link, useLoaderData, useRevalidator, useSearchParams} from "@remix-run/react";
 import {useEffect} from "react";
 import {WarnToast} from "~/components/toast";
 import * as process from "node:process";
+import {getSessionHandler} from "~/lib/session";
 
 const HOST = process.env.HOST ?? "http://localhost:8080";
 
 export const loader = async ({
                                request
                              }: LoaderFunctionArgs) => {
-  const session = await getSession(request);
-  if (!session.get("signedIn")) return redirect("/signin")
+  const {getSignedIn, getJwt} = await getSessionHandler(request);
+  if (!getSignedIn()) return redirect("/signin");
   const response = await fetch(`${HOST}/cameras`, {
     headers: {
-      "Authorization": `Bearer ${session.get("jwt")}`,
+      "Authorization": `Bearer ${getJwt()}`,
     }
   });
   const cameras = await response.json();

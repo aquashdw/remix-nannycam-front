@@ -1,14 +1,12 @@
 import {LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {getSession, updateSession} from "~/lib/session";
+import {getSessionHandler} from "~/lib/session";
 import process from "node:process";
 
 const HOST = process.env.HOST ?? "http://localhost:8080";
 
 export const loader = async ({request}: LoaderFunctionArgs) => {
-  const session = await getSession(request);
-  if (session.get("signedIn") === true) {
-    return redirect("/");
-  }
+  const {getSignedIn, update, getSetCookie} = await getSessionHandler(request);
+  if (getSignedIn()) return redirect("/");
   const url = new URL(request.url);
   const token = url.searchParams.get("token") ?? "";
   const jwtResponse = await fetch(`${HOST}/auth/signin?token=${token}`);
@@ -25,14 +23,10 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
   }
 
   const userInfo = await response.json();
+  await update({jwt, username: userInfo.email, signedIn: true});
   return redirect("/", {
     headers: {
-      "Set-Cookie": await updateSession(session, {
-        jwt,
-        username: userInfo.email,
-        signedIn: true,
-        updatedAt: Date.now(),
-      })
+      "Set-Cookie": await getSetCookie(),
     }
   });
 };
