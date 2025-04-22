@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, useFetcher, useLoaderData, useNavigate} from "@remix-run/react";
+import {FetcherWithComponents, json, Link, useFetcher, useLoaderData, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
 import {getSessionHandler} from "~/lib/session";
@@ -11,8 +11,8 @@ export const loader = async ({
   const {getSignedIn} = await getSessionHandler(request);
   if (getSignedIn()) return redirect("/");
   const url = new URL(request.url);
-  const success = url.searchParams.get("signup");
-  return json({signupStatus: success});
+  const state = url.searchParams.get("state");
+  return json({state});
 }
 
 export const action = async ({
@@ -21,7 +21,7 @@ export const action = async ({
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const signInResponse = await fetch(`${HOST}/auth/signin/password`, {
+  const signInResponse = await fetch(`${HOST}/auth/signin`, {
     method: "post",
     headers: {"Content-Type": "application/json",},
     body: JSON.stringify({email, password,}),
@@ -51,11 +51,15 @@ export const action = async ({
   });
 };
 
+
 export default function SignIn() {
   const fetcher: FetcherWithComponents<{ status: number, statusText: string }> = useFetcher();
-  const {signupStatus} = useLoaderData<typeof loader>();
+  const {state} = useLoaderData<typeof loader>();
+  let message = null;
+  if (state === "signup") message = "Sign up success";
+  if (state === "reset") message = "Password reset"
+
   const navigate = useNavigate();
-  const signupSuccess = signupStatus === "true";
 
   const {status, statusText} = fetcher.data ?? {status: null, statusText: null};
   const pending = fetcher.state === "submitting";
@@ -65,12 +69,17 @@ export default function SignIn() {
         <div className="main-content">
           <div className="flex mb-4 justify-between items-center">
             <h1>Sign In with Email</h1>
-            {signupStatus ?
-                <div
-                    className={signupSuccess ? "status-pos" : "status-neg"}
-                >
-                  Sign Up {signupSuccess ? "Success" : "Failed"}
-                </div> : null}
+            {/*{signupStatus ?*/}
+            {/*    <div*/}
+            {/*        className={signupSuccess ? "status-pos" : "status-neg"}*/}
+            {/*    >*/}
+            {/*      Sign Up {signupSuccess ? "Success" : "Failed"}*/}
+            {/*    </div> : null}*/}
+            {message ? <div
+                className="status-pos"
+            >
+              {message}
+            </div> : null}
           </div>
           <fetcher.Form method="post">
             <div className="mb-4">
@@ -81,6 +90,7 @@ export default function SignIn() {
                   name="email"
                   required
                   className="block w-full"
+                  autoComplete="username"
               />
             </div>
             <div className="mb-4">
@@ -93,6 +103,14 @@ export default function SignIn() {
                   className="block w-full"
                   autoComplete="current-password"
               />
+            </div>
+            <div className="mb-4">
+              <Link
+                  to="/reset/request"
+                  className="link-neutral"
+              >
+                Forgot your password?
+              </Link>
             </div>
             <div className="flex justify-between items-center">
               <div>
@@ -111,7 +129,7 @@ export default function SignIn() {
                 </button>
               </div>
               {failed ? <div className="status-neg">{statusText ?? "Failed"}</div> : null}
-              {pending ? <div className="status-pend">Trying to
+              {pending ? <div className="status-neutral">Trying to
                 login...</div> : null}
             </div>
           </fetcher.Form>

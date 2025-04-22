@@ -9,8 +9,9 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
   if (getSignedIn()) return redirect("/");
   const url = new URL(request.url);
   const token = url.searchParams.get("token") ?? "";
-  const signupResponse = await fetch(`${HOST}/auth/signup/verify?token=${token}`, {
+  const response = await fetch(`${HOST}/auth/signup/verify?token=${token}`, {
     method: "post",
   });
-  return redirect(`/signin?signup=${signupResponse.ok}`)
+  if (!response.ok) redirect("/singup/error");
+  return redirect(`/signin?state=signup`);
 };

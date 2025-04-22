@@ -24,7 +24,10 @@ export const action = async ({
     headers: {"Content-Type": "application/json",},
     body: JSON.stringify({email, code, password, passwordCheck,}),
   });
-  return json({status: response.status, statusText: response.ok ? "" : await response.text(),});
+  return json({
+    status: response.status,
+    statusText: response.ok ? "" : await response.text(),
+  });
 };
 
 export default function SignUp() {
@@ -109,7 +112,7 @@ export default function SignUp() {
                 </button>
               </div>
               {failed ? <div className="status-neg">{statusText ?? "Failed"}</div> : null}
-              {pending ? <div className="status-pend">Requesting
+              {pending ? <div className="status-neutral">Requesting
                 Signup...</div> : null}
               {done ?
                   <div className="status-pos">Check Email</div> : null}
