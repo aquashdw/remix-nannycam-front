@@ -4,49 +4,61 @@
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+    @apply bg-white dark:bg-gray-950;
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+    @media (prefers-color-scheme: dark) {
+        color-scheme: dark;
+    }
 }
 
 main {
-  @apply min-h-screen flex justify-center items-center;
+    @apply min-h-screen flex justify-center items-center;
 }
 
 h1 {
-  @apply text-4xl;
+    @apply text-4xl;
 }
 
 h2 {
-  @apply text-2xl;
+    @apply text-2xl;
 }
 
 h3 {
-  @apply text-xl;
+    @apply text-xl;
 }
 
 input {
-  @apply text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black;
+    @apply text-lg rounded-md border-0 py-2 px-3 bg-gray-50 text-black;
 }
 
 .button-pos {
-  @apply text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in;
+    @apply text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in;
 }
 
 .button-neg {
-  @apply text-xl text-red-500 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-red-600 disabled:text-gray-400 disabled:bg-red-600 transition ease-in;
+    @apply text-xl text-red-500 rounded-xl bg-neutral-200 px-3 py-2 cursor-pointer hover:text-white hover:bg-red-600 disabled:text-gray-400 disabled:bg-red-600 transition ease-in;
+}
+
+.status-pos {
+    @apply rounded-md bg-green-400 py-2 px-3 border-2 border-green-500;
+}
+
+.status-pend {
+    @apply rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500;
+}
+
+.status-neg {
+    @apply rounded-md bg-red-400 py-2 px-3 border-2 border-red-500;
 }
 
 main {
-  @apply bg-blue-500 text-white;
+    @apply bg-blue-500 text-white;
 }
 
 .main-content-centered {
-  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 text-center;
+    @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6 text-center;
 }
 
 .main-content {
-  @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6;
+    @apply rounded-lg p-10 xl:w-5/12 lg:w-3/6 md:w-4/6 w-5/6;
 }

@@ -21,15 +21,15 @@ export const action = async ({
   const formData = await request.formData();
   const email = formData.get("email");
   const password = formData.get("password");
-  const signinResponse = await fetch(`${HOST}/auth/signin/password`, {
+  const signInResponse = await fetch(`${HOST}/auth/signin/password`, {
     method: "post",
     headers: {"Content-Type": "application/json",},
     body: JSON.stringify({email, password,}),
   });
-  if (!signinResponse.ok)
-    return json({status: signinResponse.status});
+  if (!signInResponse.ok)
+    return json({status: signInResponse.status, statusText: signInResponse.ok ? "" : await signInResponse.text(),});
 
-  const jwt = await signinResponse.text();
+  const jwt = await signInResponse.text();
   const jwtResponse = await fetch(`${HOST}/auth/user-info`, {
     headers: {
       "Authorization": `Bearer ${jwt}`
@@ -52,14 +52,13 @@ export const action = async ({
 };
 
 export default function SignIn() {
-  const fetcher: FetcherWithComponents<{ status: number }> = useFetcher();
+  const fetcher: FetcherWithComponents<{ status: number, statusText: string }> = useFetcher();
   const {signupStatus} = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const signupSuccess = signupStatus === "true";
 
-  const {status} = fetcher.data ?? {status: null};
+  const {status, statusText} = fetcher.data ?? {status: null, statusText: null};
   const pending = fetcher.state === "submitting";
-  const done = !pending && status !== null && status === 204;
   const failed = !pending && status !== null && status !== 204;
   return (
       <main>
@@ -68,7 +67,7 @@ export default function SignIn() {
             <h1>Sign In with Email</h1>
             {signupStatus ?
                 <div
-                    className={"rounded-md py-1 px-2 border-1 " + (signupSuccess ? "bg-green-400 border-green-500" : "bg-red-400 border-red-500")}
+                    className={signupSuccess ? "status-pos" : "status-neg"}
                 >
                   Sign Up {signupSuccess ? "Success" : "Failed"}
                 </div> : null}
@@ -98,23 +97,22 @@ export default function SignIn() {
             <div className="flex justify-between items-center">
               <div>
                 <button
-                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in me-2"
-                    disabled={pending || done}
+                    className="button-pos me-2"
+                    disabled={pending}
                 >
                   Submit
                 </button>
                 <button
-                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+                    className="button-neg"
                     onClick={() => navigate("/")}
+                    disabled={pending}
                 >
                   Back
                 </button>
               </div>
-              {failed ? <div className="rounded-md py-2 px-3 border-2 bg-red-400 border-red-500">Failed</div> : null}
-              {pending ? <div className="rounded-md py-2 px-3 border-2 bg-cyan-400 border-cyan-500">Trying to
+              {failed ? <div className="status-neg">{statusText ?? "Failed"}</div> : null}
+              {pending ? <div className="status-pend">Trying to
                 login...</div> : null}
-              {done ?
-                  <div className="rounded-md py-2 px-3 border-2 bg-green-400 border-green-500">Check Email</div> : null}
             </div>
           </fetcher.Form>
         </div>

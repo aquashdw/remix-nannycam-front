@@ -24,13 +24,13 @@ export const action = async ({
     headers: {"Content-Type": "application/json",},
     body: JSON.stringify({email, code, password, passwordCheck,}),
   });
-  return json({status: response.status});
+  return json({status: response.status, statusText: response.ok ? "" : await response.text(),});
 };
 
 export default function SignUp() {
-  const fetcher: FetcherWithComponents<{ status: number }> = useFetcher();
+  const fetcher: FetcherWithComponents<{ status: number, statusText: string }> = useFetcher();
   const navigate = useNavigate();
-  const {status} = fetcher.data ?? {status: null};
+  const {status, statusText} = fetcher.data ?? {status: null, statusText: null};
   const pending = fetcher.state === "submitting";
   const done = !pending && status !== null && status === 204;
   const failed = !pending && status !== null && status !== 204;
@@ -95,23 +95,24 @@ export default function SignUp() {
             <div className="flex justify-between items-center">
               <div>
                 <button
-                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in me-2"
+                    className="button-pos me-2"
                     disabled={pending || done}
                 >
                   Submit
                 </button>
                 <button
-                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+                    className="button-neg"
                     onClick={() => navigate("/")}
+                    disabled={pending}
                 >
                   Back
                 </button>
               </div>
-              {failed ? <div className="rounded-md bg-red-400 py-2 px-3 border-2 border-red-500">Failed</div> : null}
-              {pending ? <div className="rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500">Requesting
+              {failed ? <div className="status-neg">{statusText ?? "Failed"}</div> : null}
+              {pending ? <div className="status-pend">Requesting
                 Signup...</div> : null}
               {done ?
-                  <div className="rounded-md bg-green-400 py-2 px-3 border-2 border-green-500">Check Email</div> : null}
+                  <div className="status-pos">Check Email</div> : null}
             </div>
           </fetcher.Form>
         </div>
