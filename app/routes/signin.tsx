@@ -20,12 +20,35 @@ export const action = async ({
                              }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const email = formData.get("email");
-  const response = await fetch(`${HOST}/auth/signin`, {
+  const password = formData.get("password");
+  const signinResponse = await fetch(`${HOST}/auth/signin/password`, {
     method: "post",
     headers: {"Content-Type": "application/json",},
-    body: JSON.stringify({email,}),
+    body: JSON.stringify({email, password,}),
   });
-  return json({status: response.status});
+  if (!signinResponse.ok)
+    return json({status: signinResponse.status});
+
+  const jwt = await signinResponse.text();
+  const jwtResponse = await fetch(`${HOST}/auth/user-info`, {
+    headers: {
+      "Authorization": `Bearer ${jwt}`
+    }
+  });
+  if (!jwtResponse.ok) {
+    // TODO something's wrong
+    console.error("server rejects issued jwt");
+    redirect("/");
+  }
+
+  const {update, getSetCookie} = await getSessionHandler(request);
+  const userInfo = await jwtResponse.json();
+  await update({jwt, username: userInfo.email, signedIn: true});
+  return redirect("/", {
+    headers: {
+      "Set-Cookie": await getSetCookie(),
+    }
+  });
 };
 
 export default function SignIn() {
@@ -60,7 +83,16 @@ export default function SignIn() {
                   className="block w-full"
               />
             </div>
-
+            <div className="mb-4">
+              <label htmlFor="password-input" className="block mb-2 text-xl">Password:</label>
+              <input
+                  id="password-input"
+                  type="password"
+                  name="password"
+                  required
+                  className="block w-full"
+              />
+            </div>
             <div className="flex justify-between items-center">
               <button
                   className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
