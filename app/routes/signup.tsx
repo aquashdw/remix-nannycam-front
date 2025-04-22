@@ -16,11 +16,13 @@ export const action = async ({
                              }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const email = formData.get("email");
+  const password = formData.get("password");
+  const passwordCheck = formData.get("password-check");
   const code = formData.get("code");
   const response = await fetch(`${HOST}/auth/signup/code`, {
     method: "post",
     headers: {"Content-Type": "application/json",},
-    body: JSON.stringify({email, code,}),
+    body: JSON.stringify({email, code, password, passwordCheck,}),
   });
   return json({status: response.status});
 };
@@ -42,6 +44,26 @@ export default function SignUp() {
                   id="email-input"
                   type="email"
                   name="email"
+                  required
+                  className="block w-full"
+              />
+            </div>
+            <div className="mb-2">
+              <label htmlFor="password-input" className="block mb-2 text-xl">Password:</label>
+              <input
+                  id="password-input"
+                  type="password"
+                  name="password"
+                  required
+                  className="block w-full"
+              />
+            </div>
+            <div className="mb-2">
+              <label htmlFor="check-input" className="block mb-2 text-xl">Password Check:</label>
+              <input
+                  id="check-input"
+                  type="password"
+                  name="password-check"
                   required
                   className="block w-full"
               />
@@ -74,8 +96,8 @@ export default function SignUp() {
                 Submit
               </button>
               {failed ? <div className="rounded-md bg-red-400 py-2 px-3 border-2 border-red-500">Failed</div> : null}
-              {pending ? <div className="rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500">Trying to
-                login...</div> : null}
+              {pending ? <div className="rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500">Requesting
+                Signup...</div> : null}
               {done ?
                   <div className="rounded-md bg-green-400 py-2 px-3 border-2 border-green-500">Check Email</div> : null}
             </div>
