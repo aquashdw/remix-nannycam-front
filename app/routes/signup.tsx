@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, useFetcher} from "@remix-run/react";
+import {FetcherWithComponents, json, useFetcher, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
 import {getSessionHandler} from "~/lib/session";
@@ -29,6 +29,7 @@ export const action = async ({
 
 export default function SignUp() {
   const fetcher: FetcherWithComponents<{ status: number }> = useFetcher();
+  const navigate = useNavigate();
   const {status} = fetcher.data ?? {status: null};
   const pending = fetcher.state === "submitting";
   const done = !pending && status !== null && status === 204;
@@ -46,6 +47,7 @@ export default function SignUp() {
                   name="email"
                   required
                   className="block w-full"
+                  autoComplete="username"
               />
             </div>
             <div className="mb-2">
@@ -56,6 +58,7 @@ export default function SignUp() {
                   name="password"
                   required
                   className="block w-full"
+                  autoComplete="new-password"
               />
             </div>
             <div className="mb-2">
@@ -66,6 +69,7 @@ export default function SignUp() {
                   name="password-check"
                   required
                   className="block w-full"
+                  autoComplete="new-password"
               />
             </div>
             {/*<div className="mb-2">*/}
@@ -89,12 +93,20 @@ export default function SignUp() {
               />
             </div>
             <div className="flex justify-between items-center">
-              <button
-                  className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
-                  disabled={pending || done}
-              >
-                Submit
-              </button>
+              <div>
+                <button
+                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in me-2"
+                    disabled={pending || done}
+                >
+                  Submit
+                </button>
+                <button
+                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+                    onClick={() => navigate("/")}
+                >
+                  Back
+                </button>
+              </div>
               {failed ? <div className="rounded-md bg-red-400 py-2 px-3 border-2 border-red-500">Failed</div> : null}
               {pending ? <div className="rounded-md bg-cyan-400 py-2 px-3 border-2 border-cyan-500">Requesting
                 Signup...</div> : null}

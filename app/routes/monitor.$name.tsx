@@ -100,7 +100,7 @@ export default function Monitor() {
       <main>
         <div className="main-content-centered">
           <div className="flex justify-between items-baseline">
-            <h1 className="mb-4">Connect to Camera {name}</h1>
+            <h1 className="mb-4">Connected to Camera {name}</h1>
             <Link to="/monitor" reloadDocument className="button-neg">Back</Link>
           </div>
           {/*

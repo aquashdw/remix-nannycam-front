@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, useFetcher, useLoaderData} from "@remix-run/react";
+import {FetcherWithComponents, json, useFetcher, useLoaderData, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
 import {getSessionHandler} from "~/lib/session";
@@ -54,6 +54,7 @@ export const action = async ({
 export default function SignIn() {
   const fetcher: FetcherWithComponents<{ status: number }> = useFetcher();
   const {signupStatus} = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
   const signupSuccess = signupStatus === "true";
 
   const {status} = fetcher.data ?? {status: null};
@@ -91,15 +92,24 @@ export default function SignIn() {
                   name="password"
                   required
                   className="block w-full"
+                  autoComplete="current-password"
               />
             </div>
             <div className="flex justify-between items-center">
-              <button
-                  className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
-                  disabled={pending || done}
-              >
-                Submit
-              </button>
+              <div>
+                <button
+                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in me-2"
+                    disabled={pending || done}
+                >
+                  Submit
+                </button>
+                <button
+                    className="text-xl text-blue-600 rounded-xl bg-neutral-200 px-3 py-2 hover:text-white hover:bg-blue-700 disabled:text-gray-400 disabled:bg-blue-600 transition ease-in"
+                    onClick={() => navigate("/")}
+                >
+                  Back
+                </button>
+              </div>
               {failed ? <div className="rounded-md py-2 px-3 border-2 bg-red-400 border-red-500">Failed</div> : null}
               {pending ? <div className="rounded-md py-2 px-3 border-2 bg-cyan-400 border-cyan-500">Trying to
                 login...</div> : null}
