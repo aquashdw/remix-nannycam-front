@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, Link, useFetcher, useLoaderData, useNavigate} from "@remix-run/react";
+import {FetcherWithComponents, Link, useFetcher, useLoaderData, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
 import {getSessionHandler} from "~/lib/session";
@@ -12,7 +12,7 @@ export const loader = async ({
   if (getSignedIn()) return redirect("/");
   const url = new URL(request.url);
   const state = url.searchParams.get("state");
-  return json({state});
+  return {state};
 }
 
 export const action = async ({
@@ -27,7 +27,7 @@ export const action = async ({
     body: JSON.stringify({email, password,}),
   });
   if (!signInResponse.ok)
-    return json({status: signInResponse.status, statusText: signInResponse.ok ? "" : await signInResponse.text(),});
+    return {status: signInResponse.status, statusText: signInResponse.ok ? "" : await signInResponse.text(),};
 
   const jwt = await signInResponse.text();
   const jwtResponse = await fetch(`${HOST}/auth/user-info`, {

@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, useFetcher, useNavigate, useSearchParams} from "@remix-run/react";
+import {FetcherWithComponents, useFetcher, useNavigate, useSearchParams} from "@remix-run/react";
 import {ActionFunctionArgs, redirect} from "@remix-run/node";
 import process from "node:process";
 
@@ -17,7 +17,7 @@ export const action = async ({
     body: JSON.stringify({token, password, passwordCheck,}),
   });
   if (!response.ok)
-    return json({status: response.status, statusText: response.ok ? "" : await response.text(),});
+    return {status: response.status, statusText: response.ok ? "" : await response.text(),};
   return redirect("/signin?state=reset");
 };
 

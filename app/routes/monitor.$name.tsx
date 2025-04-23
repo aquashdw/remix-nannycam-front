@@ -1,5 +1,5 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {json, Link, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
+import {Link, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
 import {getSessionHandler} from "~/lib/session";
 import {useEffect, useRef} from "react";
 import {createMonitorPeer, sendAnswer} from "~/lib/rtc";
@@ -38,7 +38,7 @@ export const loader = async ({
   });
   if (response.ok) {
     const {token} = await response.json();
-    return json({name, token, authority: AUTHORITY});
+    return {name, token, authority: AUTHORITY};
   }
   return redirect("/monitor")
 };

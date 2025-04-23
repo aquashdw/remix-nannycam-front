@@ -1,4 +1,4 @@
-import {FetcherWithComponents, json, useFetcher, useNavigate} from "@remix-run/react";
+import {FetcherWithComponents, useFetcher, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs} from "@remix-run/node";
 import process from "node:process";
 
@@ -14,10 +14,10 @@ export const action = async ({
     headers: {"Content-Type": "application/json",},
     body: JSON.stringify({email,}),
   });
-  return json({
+  return {
     status: response.status,
     statusText: response.ok ? "" : await response.text(),
-  })
+  };
 };
 
 export default function ResetRequest() {

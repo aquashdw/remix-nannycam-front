@@ -1,15 +1,14 @@
 import {LoaderFunction, LoaderFunctionArgs} from "@remix-run/node";
 import {getSessionHandler} from "~/lib/session";
-import {Form, json, Link, useLoaderData} from "@remix-run/react";
+import {Form, Link, useLoaderData} from "@remix-run/react";
 
 export const loader: LoaderFunction = async ({
                                                request
                                              }: LoaderFunctionArgs) => {
   const {getUsername} = await getSessionHandler(request);
-  const data = {
+  return {
     "username": getUsername(),
   }
-  return json(data);
 };
 
 export default function Index() {

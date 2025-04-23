@@ -1,5 +1,5 @@
 import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node";
-import {json, Link, useLoaderData, useRevalidator, useSearchParams} from "@remix-run/react";
+import {Link, useLoaderData, useRevalidator, useSearchParams} from "@remix-run/react";
 import {useEffect} from "react";
 import {ErrorToast, WarnToast} from "~/components/toast";
 import process from "node:process";
@@ -39,7 +39,7 @@ export const loader = async ({
     }
   });
   const cameras = await response.json();
-  return json({cameras});
+  return {cameras};
 }
 
 export default function AddCamera() {
