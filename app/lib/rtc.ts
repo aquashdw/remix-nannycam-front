@@ -1,5 +1,4 @@
-// camera makes peerConnection
-export const createCameraPeer = (socket: WebSocket) => {
+const createPeer = (socket: WebSocket) => {
   const peerConnection = new RTCPeerConnection({
     iceServers: [
       {
@@ -17,34 +16,13 @@ export const createCameraPeer = (socket: WebSocket) => {
     socket.send(JSON.stringify({type: "ICE", payload: JSON.stringify(data.candidate)}));
   });
   return peerConnection;
-};
+}
+
+// camera makes peerConnection
+export const createCameraPeer = createPeer
 
 export const createMonitorPeer = (socket: WebSocket, videoElem: HTMLVideoElement) => {
-  const peerConnection = new RTCPeerConnection({
-    iceServers: [
-      {
-        urls: [
-          "stun:stun.l.google.com:19302",
-          "stun:stun1.l.google.com:19302",
-          "stun:stun2.l.google.com:19302",
-          "stun:stun3.l.google.com:19302",
-        ],
-      },
-    ],
-  });
-  peerConnection.addEventListener("icecandidate", (data) => {
-    console.debug("mon send ice", data);
-    socket.send(JSON.stringify({type: "ICE", payload: JSON.stringify(data.candidate)}));
-  });
-  // peerConnection.addEventListener("track", (data) => {
-  //   console.debug(data);
-  //   // if (!videoElem.srcObject) {
-  //   //   videoElem.srcObject = new MediaStream();
-  //   // }
-  //
-  //   // videoElem.srcObject?.addTrack(data.track);
-  //   videoElem.videoTracks.addTrack(data.track);
-  // });
+  const peerConnection = createPeer(socket);
   peerConnection.addEventListener("addstream", (data) => {
     console.debug("addstream");
     console.debug("addstream event", data);
