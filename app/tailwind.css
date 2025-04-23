@@ -55,8 +55,20 @@ input {
     @apply rounded-md bg-red-400 py-2 px-3 border-2 border-red-500;
 }
 
+.text-pos {
+    @apply text-green-400 font-semibold;
+}
+
+.text-neutral {
+    @apply text-yellow-300 font-semibold;
+}
+
+.text-neg {
+    @apply text-red-500 font-semibold;
+}
+
 main {
-    @apply bg-blue-500 text-white;
+    @apply bg-blue-400 text-white;
 }
 
 .main-content-centered {
