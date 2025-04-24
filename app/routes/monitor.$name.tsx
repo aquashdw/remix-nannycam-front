@@ -5,7 +5,7 @@ import {useEffect, useRef} from "react";
 import {createMonitorPeer, sendAnswer} from "~/lib/rtc";
 import process from "node:process";
 
-const HOST = process.env.HOST ?? "http://localhost:8080";
+const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
 const AUTHORITY = HOST.split("//")[1];
 
 export const action = async ({

@@ -2,7 +2,7 @@ import {LoaderFunctionArgs, redirect} from "@remix-run/node";
 import {getSessionHandler} from "~/lib/session";
 import process from "node:process";
 
-const HOST = process.env.HOST ?? "http://localhost:8080";
+const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
 
 export const loader = async ({request}: LoaderFunctionArgs) => {
   const {getSignedIn, update, getSetCookie} = await getSessionHandler(request);

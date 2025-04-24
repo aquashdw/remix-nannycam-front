@@ -3,7 +3,7 @@ import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
 import process from "node:process";
 import {getSessionHandler} from "~/lib/session";
 
-const HOST = process.env.HOST ?? "http://localhost:8080";
+const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
 
 export const loader = async ({
                                request

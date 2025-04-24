@@ -5,7 +5,7 @@ import {getSessionHandler} from "~/lib/session";
 import {ChangeEvent, useState} from "react";
 import zxcvbn from "zxcvbn-typescript";
 
-const HOST = process.env.HOST ?? "http://localhost:8080";
+const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
 
 export const loader = async ({request}: LoaderFunctionArgs) => {
   const {getSignedIn} = await getSessionHandler(request);

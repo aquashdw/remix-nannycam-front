@@ -2,7 +2,7 @@ import {FetcherWithComponents, useFetcher, useNavigate} from "@remix-run/react";
 import {ActionFunctionArgs} from "@remix-run/node";
 import process from "node:process";
 
-const HOST = process.env.HOST ?? "http://localhost:8080";
+const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
 
 export const action = async ({
                                request,
