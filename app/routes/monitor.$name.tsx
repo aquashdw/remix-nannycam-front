@@ -6,7 +6,7 @@ import {createMonitorPeer, sendAnswer} from "~/lib/rtc";
 import process from "node:process";
 
 const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
-const AUTHORITY = HOST.split("//")[1];
+const AUTHORITY = process.env.FRONT_HOST ?? HOST.split("//")[1];
 
 export const action = async ({
                                params, request
@@ -59,7 +59,9 @@ export default function Monitor() {
   });
 
   useEffect(() => {
-    if (!socketRef.current) socketRef.current = new WebSocket(`ws://${authority}/ws/monitor?token=${token}`);
+    const https = location.protocol.startsWith("https");
+    const scheme = https ? "wss" : "ws";
+    socketRef.current = new WebSocket(`${scheme}://${authority}/ws/monitor?token=${token}`);
     const socket = socketRef.current;
     peerConnectionRef.current = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
     const peerConnection = peerConnectionRef.current;
