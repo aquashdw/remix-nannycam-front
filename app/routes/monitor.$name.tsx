@@ -2,7 +2,7 @@ import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
 import {Link, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
 import {getSessionHandler} from "~/lib/session";
 import {useEffect, useRef} from "react";
-import {createMonitorPeer, sendAnswer} from "~/lib/rtc";
+import {createMonitorPeer, iceServerInfo, sendAnswer} from "~/lib/rtc";
 import process from "node:process";
 
 const HOST = process.env.SERVER_HOST ?? "http://localhost:8080";
@@ -38,13 +38,14 @@ export const loader = async ({
   });
   if (response.ok) {
     const {token} = await response.json();
-    return {name, token, authority: AUTHORITY};
+    const iceServer = iceServerInfo();
+    return {name, token, authority: AUTHORITY, iceServer};
   }
   return redirect("/monitor")
 };
 
 export default function Monitor() {
-  const {name, token, authority} = useLoaderData<typeof loader>();
+  const {name, token, authority, iceServer} = useLoaderData<typeof loader>();
 
   const submit = useSubmit();
   const navigate = useNavigate();
@@ -63,7 +64,7 @@ export default function Monitor() {
     const scheme = https ? "wss" : "ws";
     socketRef.current = new WebSocket(`${scheme}://${authority}/ws/monitor?token=${token}`);
     const socket = socketRef.current;
-    peerConnectionRef.current = createMonitorPeer(socket, videoRef.current ?? new HTMLVideoElement());
+    peerConnectionRef.current = createMonitorPeer(socket, iceServer, videoRef.current ?? new HTMLVideoElement());
     const peerConnection = peerConnectionRef.current;
     peerConnection.addEventListener("iceconnectionstatechange", () => {
       const state = peerConnection.iceConnectionState;

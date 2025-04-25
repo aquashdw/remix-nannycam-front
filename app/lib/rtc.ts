@@ -1,14 +1,22 @@
-const createPeer = (socket: WebSocket) => {
+import process from "node:process";
+
+export const iceServerInfo = () => {
+  const iceServers = process.env.ICE ?? "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302,stun:stun2.l.google.com:19302,stun:stun3.l.google.com:19302";
+  const iceUser = process.env.ICE_USER;
+  const icePassword = process.env.ICE_PASSWORD;
+// const iceDynamicAuth = process.env.ICE_DYNAMIC === "true";
+
+  return {
+    urls: iceServers.split(","),
+    username: iceUser,
+    credential: icePassword,
+  }
+}
+
+const createPeer = (socket: WebSocket, iceServer: RTCIceServer) => {
   const peerConnection = new RTCPeerConnection({
     iceServers: [
-      {
-        urls: [
-          "stun:stun.l.google.com:19302",
-          "stun:stun1.l.google.com:19302",
-          "stun:stun2.l.google.com:19302",
-          "stun:stun3.l.google.com:19302",
-        ],
-      },
+      iceServer,
     ],
   });
   peerConnection.addEventListener("icecandidate", (data) => {
@@ -21,8 +29,8 @@ const createPeer = (socket: WebSocket) => {
 // camera makes peerConnection
 export const createCameraPeer = createPeer
 
-export const createMonitorPeer = (socket: WebSocket, videoElem: HTMLVideoElement) => {
-  const peerConnection = createPeer(socket);
+export const createMonitorPeer = (socket: WebSocket, iceServer: RTCIceServer, videoElem: HTMLVideoElement) => {
+  const peerConnection = createPeer(socket, iceServer);
   peerConnection.addEventListener("addstream", (data) => {
     console.debug("addstream");
     console.debug("addstream event", data);

@@ -2,7 +2,7 @@ import {ActionFunctionArgs, LoaderFunctionArgs, redirect} from "@remix-run/node"
 import {Form, useBeforeUnload, useLoaderData, useNavigate, useSubmit} from "@remix-run/react";
 import {getSessionHandler} from "~/lib/session";
 import {useEffect, useRef} from "react";
-import {createCameraPeer, sendOffer} from "~/lib/rtc";
+import {createCameraPeer, iceServerInfo, sendOffer} from "~/lib/rtc";
 import ScreenCover from "~/components/cover";
 import process from "node:process";
 
@@ -39,13 +39,14 @@ export const loader = async ({
   });
   if (response.ok) {
     const {token} = await response.json();
-    return {name, token, authority: AUTHORITY};
+    const iceServer = iceServerInfo();
+    return {name, token, authority: AUTHORITY, iceServer};
   }
   return redirect("/camera/new?error=error")
 };
 
 export default function Camera() {
-  const {name, token, authority} = useLoaderData<typeof loader>();
+  const {name, token, authority, iceServer} = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
   const videoRef = useRef<HTMLVideoElement>();
@@ -148,7 +149,7 @@ export default function Camera() {
       if (data.type !== "ICE") console.debug(data);
       if (data.type === "CONNECT") {
         console.debug("monitor connected");
-        peerConnectionRef.current = createCameraPeer(socket);
+        peerConnectionRef.current = createCameraPeer(socket, iceServer);
         peerConnection = peerConnectionRef.current;
         peerConnection.addEventListener("iceconnectionstatechange", () => {
           const state = peerConnection.iceConnectionState;
